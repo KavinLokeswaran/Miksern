@@ -86,8 +86,12 @@ export function drawBeatLines(
     if (t > endTime) break
     if (t < 0) continue
     const x = Math.round((t - startTime) / secondsPerPixel)
-    ctx.globalAlpha = 0.35
+    // Svak strek over hele høyden, og tydelige merker øverst og nederst.
+    ctx.globalAlpha = 0.25
     ctx.fillRect(x, 0, 1, height)
+    ctx.globalAlpha = 0.9
+    ctx.fillRect(x - 1, 0, 3, 5)
+    ctx.fillRect(x - 1, height - 5, 3, 5)
   }
   ctx.globalAlpha = 1
 }

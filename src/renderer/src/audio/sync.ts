@@ -42,7 +42,8 @@ export function matchPitch(
   let best: { pitch: number; multiplier: number } | null = null
   for (const multiplier of [1, 2, 0.5]) {
     const pitch = (targetEffectiveBpm * multiplier) / ownBpm - 1
-    if (Math.abs(pitch) <= range + 1e-9 && (!best || Math.abs(pitch) < Math.abs(best.pitch))) best = { pitch, multiplier }
+    if (Math.abs(pitch) <= range + 1e-9 && (!best || Math.abs(pitch) < Math.abs(best.pitch)))
+      best = { pitch, multiplier }
   }
   return best
 }
@@ -50,14 +51,22 @@ export function matchPitch(
 /** Hvor mange egne slag per slag på den andre decken (1, 2 eller 0,5), ut fra tempoene. */
 export function beatMultiplier(ownEffectiveBpm: number, otherEffectiveBpm: number): number {
   const ratio = ownEffectiveBpm / otherEffectiveBpm
-  return [0.5, 1, 2].reduce((best, m) => (Math.abs(Math.log2(ratio / m)) < Math.abs(Math.log2(ratio / best)) ? m : best), 1)
+  return [0.5, 1, 2].reduce(
+    (best, m) => (Math.abs(Math.log2(ratio / m)) < Math.abs(Math.log2(ratio / best)) ? m : best),
+    1
+  )
 }
 
 /**
  * Posisjonen nærmest `ownPosition` der slagene ligger oppå slagene på den andre decken.
  * `otherBeats` er hvor mange slag som har gått på den andre decken akkurat nå.
  */
-export function alignedPosition(ownPosition: number, ownGrid: BeatGrid, otherBeats: number, multiplier: number): number {
+export function alignedPosition(
+  ownPosition: number,
+  ownGrid: BeatGrid,
+  otherBeats: number,
+  multiplier: number
+): number {
   const wanted = frac(otherBeats * multiplier)
   const current = frac(beatsAt(ownPosition, ownGrid))
   const beatSeconds = 60 / ownGrid.bpm

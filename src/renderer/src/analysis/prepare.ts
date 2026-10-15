@@ -5,7 +5,10 @@ export const ANALYSIS_SAMPLE_RATE = 22050
  * Lager en mono-versjon av lyden for analyse, og tar ned samplingsfrekvensen
  * (f.eks. 44,1 kHz → 22,05 kHz) ved å slå sammen nabopunkter.
  */
-export function toAnalysisMono(channels: Float32Array[], sampleRate: number): { mono: Float32Array; sampleRate: number } {
+export function toAnalysisMono(
+  channels: Float32Array[],
+  sampleRate: number
+): { mono: Float32Array; sampleRate: number } {
   const factor = Math.max(1, Math.floor(sampleRate / ANALYSIS_SAMPLE_RATE))
   const length = Math.floor((channels[0]?.length ?? 0) / factor)
   const mono = new Float32Array(length)

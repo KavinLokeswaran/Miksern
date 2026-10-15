@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { BeatGrid } from '@shared/analysis'
+import type { EqBand } from '../audio/toneMath'
 import { DECK_IDS, type DeckId } from '../audio/types'
 
 export type DeckStatus = 'empty' | 'loading' | 'ready' | 'error'
@@ -25,6 +26,12 @@ export interface DeckState {
   isPlaying: boolean
   /** Volumfader, 0–1. */
   volume: number
+  /** Trim (gain), -1 … 1. 0 = uendret. */
+  trim: number
+  /** EQ per bånd, -1 … 1. 0 = uendret, -1 = kill. */
+  eq: Record<EqBand, number>
+  /** Filterknotten, -1 (lavpass) … 0 (av) … 1 (høypass). */
+  filter: number
   /** Vennlig feilmelding hvis noe gikk galt. */
   error: string | null
   /** Kort beskjed som forsvinner av seg selv (f.eks. hvorfor Synk ikke gikk). */
@@ -56,6 +63,9 @@ export const initialDeckState: DeckState = {
   synced: false,
   isPlaying: false,
   volume: 0.8,
+  trim: 0,
+  eq: { low: 0, mid: 0, high: 0 },
+  filter: 0,
   error: null,
   notice: null
 }

@@ -55,7 +55,11 @@ export function ZoomedWaveform({ id }: { id: DeckId }): React.JSX.Element {
   }, [id, ref, size])
 
   const message =
-    status === 'empty' ? `Deck ${id}: ingen låt` : status === 'loading' || analysis === 'running' ? 'Analyserer …' : null
+    status === 'empty'
+      ? `Deck ${id}: ingen låt`
+      : status === 'loading' || analysis === 'running'
+        ? 'Analyserer …'
+        : null
 
   return (
     <div className={`zoomed zoomed--${id.toLowerCase()}`} data-tour-id={deckTourId(id, 'waveform')}>

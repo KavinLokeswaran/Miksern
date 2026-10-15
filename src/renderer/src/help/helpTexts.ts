@@ -72,8 +72,33 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
   },
   meter: {
     title: 'Nivåmåler',
-    what: 'Viser hvor høyt deck {deck} spiller akkurat nå.',
-    when: 'Grønt er bra. Lyser den rødt, er det for høyt og lyden kan bli ødelagt.'
+    what: 'Viser hvor sterkt signalet fra deck {deck} er, etter trim og EQ, men før volumfaderen.',
+    when: 'Still trim slik at den ligger i det grønne og av og til i det gule. Lyser lampa øverst rødt, klipper det – skru ned trim.'
+  },
+  trim: {
+    title: 'Trim (gain)',
+    what: 'Justerer hvor sterkt låten kommer inn i mikseren. Noen låter er mixet sterkere enn andre.',
+    when: 'Bruk den så begge låtene ligger på omtrent samme nivå på målerne. Dobbeltklikk for å nullstille.'
+  },
+  'eq-high': {
+    title: 'Diskant (high)',
+    what: 'Skrur opp eller ned de lyse lydene: hi-hat, cymbaler og «luft».',
+    when: 'Skru litt ned hvis det blir skarpt når to låter spiller samtidig. Dobbeltklikk for å nullstille.'
+  },
+  'eq-mid': {
+    title: 'Mellomtone (mid)',
+    what: 'Skrur opp eller ned midten av lyden: vokal, synth og gitar.',
+    when: 'Skru ned for å gi plass til vokalen i den andre låten. Dobbeltklikk for å nullstille.'
+  },
+  'eq-low': {
+    title: 'Bass (low)',
+    what: 'Skrur opp eller ned bassen og kicken. Helt ned fjerner nesten all bass («kill»).',
+    when: 'I en overgang: ta bassen helt ut på den ene låten, så de to bassene ikke kolliderer. Dobbeltklikk for å nullstille.'
+  },
+  filter: {
+    title: 'Filter',
+    what: 'Én knott med to filtre. Til venstre blir lyden mørk og dempet (lavpass). Til høyre blir den tynn uten bass (høypass). I midten er filteret av.',
+    when: 'Fint for å «tone ut» en låt i en overgang, eller for å bygge spenning. Dobbeltklikk for å slå av.'
   }
 }
 
@@ -92,6 +117,16 @@ export const GLOBAL_HELP: Record<GlobalControl, HelpText> = {
     title: 'Masternivå',
     what: 'Viser hvor høyt hele miksen er.',
     when: 'Lyser det rødt, klipper lyden. Skru ned volumet litt.'
+  },
+  limiter: {
+    title: 'Limiter',
+    what: 'En automatisk sikring på master som demper de sterkeste toppene, så lyden aldri sprekker i høyttalerne.',
+    when: 'Lyser lampa ofte, spiller du for høyt. Skru ned trim eller mastervolumet litt.'
+  },
+  'clip-warning': {
+    title: 'Klippevarsel',
+    what: 'Vises når lyden er så sterk at den blir forvrengt («klipper»).',
+    when: 'Gjør det som står i varselet, så forsvinner det.'
   },
   'phase-meter': {
     title: 'Fasemåler',

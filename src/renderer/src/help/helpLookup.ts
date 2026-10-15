@@ -4,7 +4,9 @@ import { DECK_HELP, GLOBAL_HELP, type HelpText } from './helpTexts'
 import { parseDeckTourId, type GlobalControl } from './tourIds'
 
 function playKey(deck: DeckId): string {
-  const shortcut = SHORTCUTS.find((s) => typeof s.action === 'object' && s.action.type === 'deck/togglePlay' && s.action.deck === deck)
+  const shortcut = SHORTCUTS.find(
+    (s) => typeof s.action === 'object' && s.action.type === 'deck/togglePlay' && s.action.deck === deck
+  )
   return shortcut?.label ?? ''
 }
 

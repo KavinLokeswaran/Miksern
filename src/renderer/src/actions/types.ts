@@ -1,3 +1,4 @@
+import type { EqBand } from '../audio/toneMath'
 import type { DeckId } from '../audio/types'
 import type { SortKey } from '../library/filterSort'
 
@@ -13,6 +14,10 @@ export type Action =
   | { type: 'deck/pause'; deck: DeckId }
   | { type: 'deck/seek'; deck: DeckId; seconds: number }
   | { type: 'deck/setVolume'; deck: DeckId; value: number }
+  /** Trim, EQ og filter: -1 … 1, der 0 er midtstilling. */
+  | { type: 'deck/setTrim'; deck: DeckId; value: number }
+  | { type: 'deck/setEq'; deck: DeckId; band: EqBand; value: number }
+  | { type: 'deck/setFilter'; deck: DeckId; value: number }
   /** Tempo-slideren: -0.08 til 0.08. */
   | { type: 'deck/setPitch'; deck: DeckId; value: number }
   | { type: 'deck/toggleSync'; deck: DeckId }

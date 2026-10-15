@@ -3,6 +3,7 @@ import { crossfaderGains, faderGain } from './curves'
 import { Deck } from './Deck'
 import { MasterBus } from './MasterBus'
 import type { Level } from './meterMath'
+import type { EqBand } from './toneMath'
 import { DECK_IDS, type DeckId, type MeterTarget } from './types'
 
 /** Hele lydmotoren: to decks, to kanalstriper og master. */
@@ -40,6 +41,18 @@ export class AudioEngine {
 
   setChannelVolume(id: DeckId, position: number): void {
     this.strips[id].setFader(faderGain(position))
+  }
+
+  setTrim(id: DeckId, value: number): void {
+    this.strips[id].setTrim(value)
+  }
+
+  setEq(id: DeckId, band: EqBand, value: number): void {
+    this.strips[id].setEq(band, value)
+  }
+
+  setFilter(id: DeckId, value: number): void {
+    this.strips[id].setFilter(value)
   }
 
   setCrossfader(position: number): void {

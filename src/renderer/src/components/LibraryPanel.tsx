@@ -46,7 +46,11 @@ export function LibraryPanel(): React.JSX.Element {
             Skann på nytt
           </button>
         )}
-        <span className={`library__status ${scanning ? 'library__status--busy' : ''}`} data-tour-id="library-status" role="status">
+        <span
+          className={`library__status ${scanning ? 'library__status--busy' : ''}`}
+          data-tour-id="library-status"
+          role="status"
+        >
           {statusText(progress, playable)}
         </span>
         {!scanning && analysisProgress && (
@@ -62,7 +66,8 @@ export function LibraryPanel(): React.JSX.Element {
             aria-expanded={showSkipped}
             onClick={() => setShowSkipped((v) => !v)}
           >
-            {skipped.length === 1 ? '1 fil hoppet over' : `${skipped.length} filer hoppet over`} {showSkipped ? '▴' : '▾'}
+            {skipped.length === 1 ? '1 fil hoppet over' : `${skipped.length} filer hoppet over`}{' '}
+            {showSkipped ? '▴' : '▾'}
           </button>
         )}
         <input
@@ -84,9 +89,15 @@ export function LibraryPanel(): React.JSX.Element {
       {!ready ? null : !folder ? (
         <EmptyLibrary />
       ) : tracks.length === 0 && !scanning ? (
-        <div className="library__empty">Fant ingen lydfiler i denne mappa. Appen leter etter MP3, WAV, FLAC og M4A/AAC.</div>
+        <div className="library__empty">
+          Fant ingen lydfiler i denne mappa. Appen leter etter MP3, WAV, FLAC og M4A/AAC.
+        </div>
       ) : (
-        <TrackList tracks={visible} sort={sort} emptyText={search ? 'Ingen låter passer til søket.' : 'Leter etter musikk …'} />
+        <TrackList
+          tracks={visible}
+          sort={sort}
+          emptyText={search ? 'Ingen låter passer til søket.' : 'Leter etter musikk …'}
+        />
       )}
     </section>
   )
@@ -108,7 +119,11 @@ function EmptyLibrary(): React.JSX.Element {
     <div className="library__welcome">
       <p className="library__welcome-title">Hvor ligger musikken din?</p>
       <p>Velg mappa med musikkfilene dine (MP3, WAV, FLAC eller M4A). Appen finner låtene, også i undermapper.</p>
-      <button type="button" className="button button--primary" onClick={() => void dispatch({ type: 'library/pickFolder' })}>
+      <button
+        type="button"
+        className="button button--primary"
+        onClick={() => void dispatch({ type: 'library/pickFolder' })}
+      >
         Velg musikkmappe …
       </button>
     </div>

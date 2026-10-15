@@ -44,21 +44,41 @@ describe('søk', () => {
 
 describe('sortering', () => {
   it('skjuler låter som ikke kan spilles', () => {
-    expect(visibleTracks(tracks, '', { key: 'title', direction: 'asc' }).map((t) => t.title)).toEqual(['Allegro', 'Blå', 'Zulu'])
+    expect(visibleTracks(tracks, '', { key: 'title', direction: 'asc' }).map((t) => t.title)).toEqual([
+      'Allegro',
+      'Blå',
+      'Zulu'
+    ])
   })
 
   it('sorterer etter BPM og lengde, med ukjent til slutt', () => {
-    expect(visibleTracks(tracks, '', { key: 'bpm', direction: 'asc' }).map((t) => t.title)).toEqual(['Allegro', 'Blå', 'Zulu'])
-    expect(visibleTracks(tracks, '', { key: 'duration', direction: 'desc' }).map((t) => t.title)).toEqual(['Allegro', 'Blå', 'Zulu'])
+    expect(visibleTracks(tracks, '', { key: 'bpm', direction: 'asc' }).map((t) => t.title)).toEqual([
+      'Allegro',
+      'Blå',
+      'Zulu'
+    ])
+    expect(visibleTracks(tracks, '', { key: 'duration', direction: 'desc' }).map((t) => t.title)).toEqual([
+      'Allegro',
+      'Blå',
+      'Zulu'
+    ])
   })
 
   it('bruker analysert BPM foran BPM fra taggene', () => {
     const analysis = { [tracks[2].id]: { grid: { bpm: 90, firstBeat: 0 } } }
-    expect(visibleTracks(tracks, '', { key: 'bpm', direction: 'asc' }, analysis).map((t) => t.title)).toEqual(['Zulu', 'Allegro', 'Blå'])
+    expect(visibleTracks(tracks, '', { key: 'bpm', direction: 'asc' }, analysis).map((t) => t.title)).toEqual([
+      'Zulu',
+      'Allegro',
+      'Blå'
+    ])
   })
 
   it('sorterer artister alfabetisk på norsk, uten artist sist', () => {
-    expect(visibleTracks(tracks, '', { key: 'artist', direction: 'asc' }).map((t) => t.artist)).toEqual(['Café Del Mar', 'Ørjan', null])
+    expect(visibleTracks(tracks, '', { key: 'artist', direction: 'asc' }).map((t) => t.artist)).toEqual([
+      'Café Del Mar',
+      'Ørjan',
+      null
+    ])
   })
 
   it('bytter retning ved nytt klikk på samme kolonne', () => {

@@ -47,7 +47,11 @@ export function PhaseMeter(): React.JSX.Element {
         } else {
           status = 'Start begge decks for å se om de går i takt.'
         }
-      } else if (A.status === 'ready' && B.status === 'ready' && (A.analysis === 'running' || B.analysis === 'running')) {
+      } else if (
+        A.status === 'ready' &&
+        B.status === 'ready' &&
+        (A.analysis === 'running' || B.analysis === 'running')
+      ) {
         status = 'Finner tempoet …'
       }
       if (needleRef.current) needleRef.current.style.left = `${50 + needle * 100}%`

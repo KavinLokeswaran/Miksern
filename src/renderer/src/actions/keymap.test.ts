@@ -9,7 +9,10 @@ describe('tastatursnarveier', () => {
 
   it('flytter kryssslideren med pilene', () => {
     const left = shortcutFor('ArrowLeft')!.action
-    expect(typeof left === 'function' && left({ crossfader: 0.5 })).toEqual({ type: 'mixer/setCrossfader', value: 0.45 })
+    expect(typeof left === 'function' && left({ crossfader: 0.5 })).toEqual({
+      type: 'mixer/setCrossfader',
+      value: 0.45
+    })
   })
 
   it('har ingen doble taster', () => {

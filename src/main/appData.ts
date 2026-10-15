@@ -22,7 +22,11 @@ export interface StoredAnalysisEntry extends TrackAnalysis {
   mtimeMs: number
 }
 
-export function isAnalysisValid(entry: StoredAnalysisEntry | undefined, size: number, mtimeMs: number): entry is StoredAnalysisEntry {
+export function isAnalysisValid(
+  entry: StoredAnalysisEntry | undefined,
+  size: number,
+  mtimeMs: number
+): entry is StoredAnalysisEntry {
   return !!entry && entry.version === ANALYSIS_VERSION && entry.size === size && entry.mtimeMs === mtimeMs
 }
 

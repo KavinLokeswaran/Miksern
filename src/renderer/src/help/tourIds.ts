@@ -16,7 +16,12 @@ export const DECK_CONTROLS = [
   'meter',
   'tempo',
   'sync',
-  'waveform'
+  'waveform',
+  'trim',
+  'eq-high',
+  'eq-mid',
+  'eq-low',
+  'filter'
 ] as const
 export type DeckControl = (typeof DECK_CONTROLS)[number]
 
@@ -25,6 +30,8 @@ export const GLOBAL_CONTROLS = [
   'master-volume',
   'master-meter',
   'phase-meter',
+  'limiter',
+  'clip-warning',
   'library',
   'library-folder',
   'library-rescan',

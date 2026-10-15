@@ -12,6 +12,8 @@ import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './mes
 import { applyPitch, clampPitch, otherDeck, showNotice, syncPhase, syncProblem, syncTempo } from './syncLogic'
 import type { Action } from './types'
 
+const clampUnit = (x: number): number => Math.max(-1, Math.min(1, x))
+
 export type ActionListener = (action: Action, state: AppState) => void
 
 const listeners = new Set<ActionListener>()
@@ -78,6 +80,24 @@ export async function dispatch(action: Action): Promise<void> {
       const value = clamp01(action.value)
       engine.setChannelVolume(action.deck, value)
       updateDeck(action.deck, { volume: value })
+      break
+    }
+    case 'deck/setTrim': {
+      const value = clampUnit(action.value)
+      engine.setTrim(action.deck, value)
+      updateDeck(action.deck, { trim: value })
+      break
+    }
+    case 'deck/setEq': {
+      const value = clampUnit(action.value)
+      engine.setEq(action.deck, action.band, value)
+      updateDeck(action.deck, { eq: { ...useAppStore.getState().decks[action.deck].eq, [action.band]: value } })
+      break
+    }
+    case 'deck/setFilter': {
+      const value = clampUnit(action.value)
+      engine.setFilter(action.deck, value)
+      updateDeck(action.deck, { filter: value })
       break
     }
     case 'deck/setPitch': {
@@ -215,7 +235,12 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
 }
 
 /** Finner BPM, beatgrid og bølgeform for låten på decken (fra lageret, eller regner ut nå). */
-async function analyseOnDeck(id: DeckId, source: TrackSource, buffer: AudioBuffer, isCurrent: () => boolean): Promise<void> {
+async function analyseOnDeck(
+  id: DeckId,
+  source: TrackSource,
+  buffer: AudioBuffer,
+  isCurrent: () => boolean
+): Promise<void> {
   try {
     const { analysis, waveform } = await analyseDeckTrack(source.path, buffer)
     if (!isCurrent()) return
@@ -236,6 +261,9 @@ export function initEngine(): void {
   const { decks, mixer } = useAppStore.getState()
   for (const id of DECK_IDS) {
     engine.setChannelVolume(id, decks[id].volume)
+    engine.setTrim(id, decks[id].trim)
+    engine.setFilter(id, decks[id].filter)
+    for (const band of ['low', 'mid', 'high'] as const) engine.setEq(id, band, decks[id].eq[band])
     engine.decks[id].onEnded = () => void dispatch({ type: 'deck/ended', deck: id })
   }
   engine.setCrossfader(mixer.crossfader)

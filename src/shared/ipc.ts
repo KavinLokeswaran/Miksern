@@ -29,8 +29,7 @@ export interface StoredAnalysis {
 }
 
 export type ReadFileResult =
-  | { ok: true; data: Uint8Array }
-  | { ok: false; reason: 'not-allowed' | 'not-found' | 'unreadable' }
+  { ok: true; data: Uint8Array } | { ok: false; reason: 'not-allowed' | 'not-found' | 'unreadable' }
 
 /** API-et som preload gir til grensesnittet (window.mikseren). */
 export interface MikserenApi {

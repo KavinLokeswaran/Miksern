@@ -38,7 +38,8 @@ export function startBackgroundAnalysis(): void {
         } catch (err) {
           failed.add(id)
           // Kunne ikke pakkes ut: fila kan ikke spilles, så den skal ikke vises i listen.
-          if (err instanceof DOMException || (err instanceof Error && err.name === 'EncodingError')) markTrackUnplayable(id)
+          if (err instanceof DOMException || (err instanceof Error && err.name === 'EncodingError'))
+            markTrackUnplayable(id)
         }
         await new Promise((r) => setTimeout(r, PAUSE_MS))
       }

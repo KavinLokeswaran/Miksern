@@ -12,20 +12,23 @@ export function setupSmokeTest(win: BrowserWindow): void {
     console.log(`[renderer:${event.level}] ${event.message}`)
   })
   win.webContents.on('did-finish-load', () => {
-    setTimeout(async () => {
-      const script = process.env.MIKSEREN_SMOKE_SCRIPT
-      if (script) {
-        try {
-          const result = await win.webContents.executeJavaScript(script)
-          console.log('[smoke] resultat:', JSON.stringify(result))
-        } catch (err) {
-          console.log('[smoke] skriptfeil:', err)
+    setTimeout(
+      async () => {
+        const script = process.env.MIKSEREN_SMOKE_SCRIPT
+        if (script) {
+          try {
+            const result = await win.webContents.executeJavaScript(script)
+            console.log('[smoke] resultat:', JSON.stringify(result))
+          } catch (err) {
+            console.log('[smoke] skriptfeil:', err)
+          }
         }
-      }
-      const image = await win.webContents.capturePage()
-      await writeFile(target, image.toPNG())
-      console.log('[smoke] skjermbilde lagret:', target)
-      app.quit()
-    }, Number(process.env.MIKSEREN_SMOKE_DELAY ?? 2500))
+        const image = await win.webContents.capturePage()
+        await writeFile(target, image.toPNG())
+        console.log('[smoke] skjermbilde lagret:', target)
+        app.quit()
+      },
+      Number(process.env.MIKSEREN_SMOKE_DELAY ?? 2500)
+    )
   })
 }

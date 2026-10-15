@@ -44,10 +44,6 @@ export interface LibrarySnapshot {
 }
 
 export type ScanProgress =
-  | { phase: 'idle' }
-  | { phase: 'finding'; found: number }
-  | { phase: 'reading'; done: number; total: number }
+  { phase: 'idle' } | { phase: 'finding'; found: number } | { phase: 'reading'; done: number; total: number }
 
-export type ScanResult =
-  | { ok: true; library: LibrarySnapshot }
-  | { ok: false; reason: 'no-folder' | 'folder-missing' }
+export type ScanResult = { ok: true; library: LibrarySnapshot } | { ok: false; reason: 'no-folder' | 'folder-missing' }

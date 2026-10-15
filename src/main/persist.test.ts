@@ -25,7 +25,11 @@ describe('JsonFile', () => {
   it('bruker standardverdier når migreringen avviser innholdet', async () => {
     const file = await tempFile()
     await writeFile(file, JSON.stringify({ version: 99 }))
-    const store = new JsonFile(file, () => ({ version: 1 }), (raw) => ((raw as { version: number }).version === 1 ? (raw as { version: 1 }) : null))
+    const store = new JsonFile(
+      file,
+      () => ({ version: 1 }),
+      (raw) => ((raw as { version: number }).version === 1 ? (raw as { version: 1 }) : null)
+    )
     expect(store.get()).toEqual({ version: 1 })
   })
 })

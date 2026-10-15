@@ -59,6 +59,15 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
             </>
           )}
         </div>
+        <button
+          type="button"
+          className="button button--small deck__load"
+          data-tour-id={t('load')}
+          disabled={deck.status === 'loading'}
+          onClick={() => void dispatch({ type: 'deck/openFile', deck: id })}
+        >
+          Åpne fil …
+        </button>
         <div className="deck__bpm" data-tour-id={t('bpm')}>
           <span className="deck__bpm-value">
             {deck.bpm ? formatBpm(effectiveBpm(deck.bpm, deck.pitch)) : deck.analysis === 'running' ? '…' : '—'}
@@ -105,15 +114,6 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
               onClick={() => void dispatch({ type: 'deck/toggleSync', deck: id })}
             >
               Synk <span className="deck__sync-en">(sync)</span>
-            </button>
-            <button
-              type="button"
-              className="button deck__load"
-              data-tour-id={t('load')}
-              disabled={deck.status === 'loading'}
-              onClick={() => void dispatch({ type: 'deck/openFile', deck: id })}
-            >
-              Åpne fil …
             </button>
           </div>
         </div>

@@ -43,7 +43,12 @@ describe('mappeskanning', () => {
     const root = await makeLibrary()
     const files = await findAudioFiles(root)
     const names = files.map((f) => f.slice(root.length + 1)).sort()
-    expect(names).toEqual(['Første låt.wav', 'Undermappe/Beskyttet.m4p', 'Undermappe/Dypere/Andre.WAV', 'Undermappe/Ødelagt.flac'])
+    expect(names).toEqual([
+      'Første låt.wav',
+      'Undermappe/Beskyttet.m4p',
+      'Undermappe/Dypere/Andre.WAV',
+      'Undermappe/Ødelagt.flac'
+    ])
   })
 
   it('leser lengde og bruker filnavnet som tittel', async () => {

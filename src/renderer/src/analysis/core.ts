@@ -29,7 +29,11 @@ function onePoleCoefficient(cutoffHz: number, sampleRate: number): number {
 }
 
 /** Deler lyden i bass, mellomtone og diskant og finner toppnivå per bølgeform-punkt. */
-export function computeWaveform(mono: Float32Array, sampleRate: number, binsPerSecond = WAVEFORM_BINS_PER_SECOND): Uint8Array {
+export function computeWaveform(
+  mono: Float32Array,
+  sampleRate: number,
+  binsPerSecond = WAVEFORM_BINS_PER_SECOND
+): Uint8Array {
   const samplesPerBin = sampleRate / binsPerSecond
   const bins = Math.max(1, Math.ceil(mono.length / samplesPerBin))
   const raw = new Float32Array(bins * 3)
@@ -146,7 +150,10 @@ function coarseTempo(env: Float32Array): number {
     const lag = (ONSET_RATE * 60) / bpm
     // Et riktig tempo gir også treff på 2 og 4 slag, og på halve slag.
     const score =
-      interpolate(acf, lag) + 0.5 * interpolate(acf, lag * 2) + 0.25 * interpolate(acf, lag * 4) + 0.25 * interpolate(acf, lag / 2)
+      interpolate(acf, lag) +
+      0.5 * interpolate(acf, lag * 2) +
+      0.25 * interpolate(acf, lag * 4) +
+      0.25 * interpolate(acf, lag / 2)
     // Liten forkjærlighet for vanlig dansemusikk-tempo, så vi sjeldnere tar feil med dobbelt/halvt.
     const prior = Math.exp(-0.5 * Math.pow(Math.log2(bpm / 125) / 0.9, 2))
     const weighted = score * (0.85 + 0.15 * prior)
@@ -192,7 +199,7 @@ function foldScore(env: Float32Array, bpm: number): { score: number; phase: numb
   const y2 = hist[(bestBin + 1) % PHASE_BINS]
   const denom = y0 - 2 * y1 + y2
   const offset = denom !== 0 ? (0.5 * (y0 - y2)) / denom : 0
-  const phase = (((bestBin + Math.max(-0.5, Math.min(0.5, offset))) / PHASE_BINS) % 1 + 1) % 1
+  const phase = ((((bestBin + Math.max(-0.5, Math.min(0.5, offset))) / PHASE_BINS) % 1) + 1) % 1
   return { score: best, phase, hist }
 }
 
