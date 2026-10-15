@@ -84,7 +84,7 @@ export function Knob({
     else if (event.key === 'Enter' || event.key === 'Delete' || event.key === 'Backspace') onChange(defaultValue)
     else return
     event.preventDefault()
-    // Ikke la piltastene også flytte kryssslideren.
+    // Ikke la piltastene også flytte krysslideren.
     event.stopPropagation()
   }
 

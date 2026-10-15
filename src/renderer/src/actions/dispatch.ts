@@ -14,6 +14,7 @@ import { cuePosition, jumpTo, persistCues, quantize, syncLoopState } from './cue
 import { handleLearnAction } from '../learn/learnController'
 import { PRACTICE_BEATS } from '../practice/arrangement'
 import { getPracticeBeat } from '../practice/practiceBeats'
+import { handleTipAction } from '../tips/tipController'
 import { patchSettings } from '../state/settingsStore'
 import { applyRecordingResult, getRecorder } from './recordingLogic'
 import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './messages'
@@ -278,6 +279,17 @@ export async function dispatch(action: Action): Promise<void> {
       break
     case 'settings/setAdvanced':
       patchSettings({ advancedMode: action.value })
+      break
+    case 'settings/setTips':
+      patchSettings({ tipsEnabled: action.value })
+      if (!action.value) handleTipAction({ type: 'tips/dismiss' })
+      break
+    case 'settings/resetTips':
+      patchSettings({ shownTips: [] })
+      handleTipAction(action)
+      break
+    case 'tips/dismiss':
+      handleTipAction(action)
       break
     case 'learn/start':
     case 'learn/next':

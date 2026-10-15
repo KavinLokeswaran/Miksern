@@ -11,13 +11,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "icon": "electron scripts/make-icon.cjs",
+    "dist:mac": "npm run build && node scripts/dist-mac.cjs"
   },
   "dependencies": {
-    "music-metadata": "12.2.1",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "zustand": "5.0.15"
+    "music-metadata": "12.2.1"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
@@ -28,8 +27,11 @@
     "electron-builder": "26.15.3",
     "electron-vite": "4.0.1",
     "prettier": "3.9.10",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "typescript": "5.9.3",
     "vite": "7.3.7",
-    "vitest": "4.1.12"
+    "vitest": "4.1.12",
+    "zustand": "5.0.15"
   }
 }

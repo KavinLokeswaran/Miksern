@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232a3a"/>
+      <stop offset="1" stop-color="#0e1116"/>
+    </linearGradient>
+    <radialGradient id="vinyl" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2a2f3a"/>
+      <stop offset="1" stop-color="#090b0f"/>
+    </radialGradient>
+    <linearGradient id="thumb" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0.5" stop-color="#3d8bff"/>
+      <stop offset="0.5" stop-color="#ff8a2b"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)" filter="url(#shadow)"/>
+  <rect x="101" y="101" width="822" height="822" rx="184" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+
+  <!-- Plate A (blå) -->
+  <g transform="translate(366 440)">
+    <circle r="190" fill="url(#vinyl)"/>
+    <circle r="190" fill="none" stroke="#3d8bff" stroke-width="10"/>
+    <circle r="150" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="3"/>
+    <circle r="120" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="3"/>
+    <circle r="68" fill="#3d8bff"/>
+    <circle r="10" fill="#0b0d11"/>
+  </g>
+
+  <!-- Plate B (oransje) -->
+  <g transform="translate(658 440)">
+    <circle r="190" fill="url(#vinyl)"/>
+    <circle r="190" fill="none" stroke="#ff8a2b" stroke-width="10"/>
+    <circle r="150" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="3"/>
+    <circle r="120" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="3"/>
+    <circle r="68" fill="#ff8a2b"/>
+    <circle r="10" fill="#0b0d11"/>
+  </g>
+
+  <!-- Krysslider -->
+  <rect x="292" y="752" width="440" height="22" rx="11" fill="#2c3240"/>
+  <rect x="470" y="712" width="84" height="102" rx="18" fill="url(#thumb)" stroke="#0b0d11" stroke-width="8"/>
+</svg>

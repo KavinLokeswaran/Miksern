@@ -6,6 +6,7 @@ import { LibraryPanel } from './components/LibraryPanel'
 import { Mixer } from './components/Mixer'
 import { ModeSwitch } from './components/ModeSwitch'
 import { RecordButton } from './components/RecordButton'
+import { TipBubble } from './components/TipBubble'
 import { Toast } from './components/Toast'
 import { TourOverlay } from './components/TourOverlay'
 import { WaveformRow } from './components/WaveformRow'
@@ -31,6 +32,7 @@ export function App(): React.JSX.Element {
       <LibraryPanel />
       <HelpBubble />
       <TourOverlay />
+      <TipBubble />
       <Toast />
     </div>
   )

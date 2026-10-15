@@ -1841,3 +1841,86 @@ input:focus-visible,
   margin-top: 10px !important;
   font-size: 13px;
 }
+
+/* ---------- Små tips ---------- */
+
+.tip {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 940;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 380px;
+  padding: 12px 12px 10px 14px;
+  border-radius: 14px;
+  background: #232837;
+  border: 1px solid #3a4150;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  animation: tip-in 0.25s ease-out;
+}
+
+.tip__icon {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.tip__label {
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tip__text {
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.tip__off {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tip__close {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.helpmenu__setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.helpmenu__reset {
+  margin: 0 10px 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

@@ -10,6 +10,7 @@ export function HelpMenu(): React.JSX.Element {
   const open = useLearnStore((s) => s.menuOpen)
   const completed = useSettingsStore((s) => s.completedLessons)
   const introDone = useSettingsStore((s) => s.introDone)
+  const tipsEnabled = useSettingsStore((s) => s.tipsEnabled)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -81,6 +82,22 @@ export function HelpMenu(): React.JSX.Element {
               </button>
             )
           })}
+          <div className="helpmenu__heading">Innstillinger</div>
+          <label className="helpmenu__setting">
+            <input
+              type="checkbox"
+              checked={tipsEnabled}
+              onChange={(e) => void dispatch({ type: 'settings/setTips', value: e.currentTarget.checked })}
+            />
+            <span>Vis små tips underveis</span>
+          </label>
+          <button
+            type="button"
+            className="helpmenu__reset"
+            onClick={() => void dispatch({ type: 'settings/resetTips' })}
+          >
+            Vis tipsene på nytt
+          </button>
         </div>
       )}
     </div>

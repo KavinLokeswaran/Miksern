@@ -77,7 +77,7 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
   },
   trim: {
     title: 'Trim (gain)',
-    what: 'Justerer hvor sterkt låten kommer inn i mikseren. Noen låter er mixet sterkere enn andre.',
+    what: 'Justerer hvor sterkt låten kommer inn i mikseren. Noen låter er mikset sterkere enn andre.',
     when: 'Bruk den så begge låtene ligger på omtrent samme nivå på målerne. Dobbeltklikk for å nullstille.'
   },
   'eq-high': {

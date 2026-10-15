@@ -92,7 +92,7 @@ export const INTRO: Tour = {
       title: 'Spill av (play)',
       text: 'Trykk «Spill av» for å starte låten på deck A. (Snarvei: Q)',
       target: ['deck-a-play'],
-      waiting: 'Venter på at du trykker Spill av …',
+      waiting: 'Venter på at du trykker «Spill av» …',
       done: ({ snap }) => playing(snap, 'A')
     },
     {
@@ -110,7 +110,7 @@ export const INTRO: Tour = {
     {
       id: 'start-b',
       title: 'Gjør klar neste låt på deck B',
-      text: 'Last inn en annen låt på deck B og trykk «Spill av» (snarvei: P). Nå spiller begge låtene – det er helt greit. Kryssslideren bestemmer hva som høres.',
+      text: 'Last inn en annen låt på deck B og trykk «Spill av» (snarvei: P). Nå spiller begge låtene – det er helt greit. Krysslideren bestemmer hva som høres.',
       target: ['deck-b-panel'],
       waiting: 'Venter på at deck B spiller …',
       done: ({ snap }) => playing(snap, 'B'),
@@ -127,15 +127,15 @@ export const INTRO: Tour = {
       title: 'BPM, tempo og Synk',
       text: 'BPM betyr «slag per minutt». Låtene har litt ulikt tempo, så trommene kommer ikke samtidig. Trykk «Synk» på B: da får B samme tempo som A, og slagene legges oppå hverandre. Se at fasemåleren blir grønn.',
       target: ['deck-a-bpm', 'deck-b-bpm', 'deck-b-sync', 'phase-meter'],
-      waiting: 'Venter på at du trykker Synk på B …',
+      waiting: 'Venter på at du trykker «Synk» på B …',
       done: ({ snap }) => deck(snap, 'B').synced || deck(snap, 'A').synced
     },
     {
       id: 'crossfader',
       title: 'Krysslider: fra A til B',
-      text: 'Nå kommer selve overgangen! Dra kryssslideren sakte helt over til B (høyre). Ta gjerne 10–20 sekunder.',
+      text: 'Nå kommer selve overgangen! Dra krysslideren sakte helt over til B (høyre). Ta gjerne 10–20 sekunder.',
       target: ['crossfader'],
-      waiting: 'Dra kryssslideren helt til B …',
+      waiting: 'Dra krysslideren helt til B …',
       done: ({ snap }) => snap.app.mixer.crossfader >= 0.95
     },
     {
@@ -238,7 +238,7 @@ export const LESSONS: Record<LessonId, Tour> = {
       {
         id: 'pause',
         title: 'Stopp låten',
-        text: 'Trykk Pause på deck A, og klikk et sted i oversikten over låten for å finne et startpunkt.',
+        text: 'Trykk «Pause» på deck A, og klikk et sted i oversikten over låten for å finne et startpunkt.',
         target: ['deck-a-play', 'deck-a-position'],
         waiting: 'Venter på pause …',
         done: ({ snap }) => loaded(snap, 'A') && !deck(snap, 'A').isPlaying
@@ -246,17 +246,17 @@ export const LESSONS: Record<LessonId, Tour> = {
       {
         id: 'set-cue',
         title: 'Sett cue-punkt',
-        text: 'Trykk Cue. Nå er startpunktet lagret der du står (på nærmeste slag).',
+        text: 'Trykk «Cue». Nå er startpunktet lagret der du står (på nærmeste slag).',
         target: ['deck-a-cue'],
-        waiting: 'Trykk Cue …',
+        waiting: 'Trykk «Cue» …',
         done: ({ action, snap }) => action?.type === 'deck/cue' && !deck(snap, 'A').isPlaying
       },
       {
         id: 'use-cue',
         title: 'Tilbake til start',
-        text: 'Trykk Spill av, lytt litt, og trykk så Cue igjen. Låten hopper tilbake til startpunktet og stopper. Slik finner DJ-er raskt starten på neste låt.',
+        text: 'Trykk «Spill av», lytt litt, og trykk så «Cue» igjen. Låten hopper tilbake til startpunktet og stopper. Slik finner DJ-er raskt starten på neste låt.',
         target: ['deck-a-play', 'deck-a-cue'],
-        waiting: 'Spill av, og trykk Cue …',
+        waiting: '«Spill av», og trykk «Cue» …',
         done: ({ action, snap }, memo) => {
           if (playing(snap, 'A')) memo.played = true
           return memo.played === true && action?.type === 'deck/cue' && !deck(snap, 'A').isPlaying
@@ -312,7 +312,7 @@ export const LESSONS: Record<LessonId, Tour> = {
         title: 'Slipp loopen',
         text: 'Trykk «Avslutt loop», så spiller låten videre som normalt.',
         target: ['deck-a-loop-exit'],
-        waiting: 'Trykk Avslutt loop …',
+        waiting: 'Trykk «Avslutt loop» …',
         done: ({ action, snap }) => action?.type === 'deck/exitLoop' && deck(snap, 'A').loop === null
       },
       {
@@ -330,17 +330,17 @@ export const LESSONS: Record<LessonId, Tour> = {
       setupStep('A'),
       {
         id: 'echo-on',
-        title: 'Slå på Echo',
-        text: 'Trykk Echo. Lyden gjentas hvert halve slag, i takt med låten.',
+        title: 'Slå på «Echo»',
+        text: 'Trykk «Echo». Lyden gjentas hvert halve slag, i takt med låten.',
         target: ['deck-a-fx-echo'],
         onEnter: [{ type: 'deck/showPanel', deck: 'A', panel: 'fx' }],
-        waiting: 'Trykk Echo …',
+        waiting: 'Trykk «Echo» …',
         done: ({ snap }) => deck(snap, 'A').fx.echo.on
       },
       {
         id: 'echo-amount',
         title: 'Mer ekko',
-        text: 'Vri «Mengde»-knotten ved Echo opp, så blir ekkoet sterkere og varer lenger.',
+        text: 'Vri «Mengde»-knotten ved «Echo» opp, så blir ekkoet sterkere og varer lenger.',
         target: ['deck-a-fx'],
         waiting: 'Skru mengden opp …',
         done: ({ snap }) => deck(snap, 'A').fx.echo.amount >= 0.8
@@ -348,17 +348,17 @@ export const LESSONS: Record<LessonId, Tour> = {
       {
         id: 'echo-out',
         title: 'Echo out',
-        text: 'Trykk Pause på A mens Echo er på – og hør ekkoet klinge ut av seg selv. Slik avslutter mange DJ-er en låt.',
+        text: 'Trykk «Pause» på A mens «Echo» er på – og hør ekkoet klinge ut av seg selv. Slik avslutter mange DJ-er en låt.',
         target: ['deck-a-play', 'deck-a-fx-echo'],
-        waiting: 'Trykk Pause med Echo på …',
+        waiting: 'Trykk «Pause» med Echo på …',
         done: ({ action, snap }) => action !== null && !deck(snap, 'A').isPlaying && deck(snap, 'A').fx.echo.on
       },
       {
         id: 'others',
         title: 'Prøv de andre',
-        text: 'Slå av Echo, start låten igjen, og prøv Reverb (romklang) eller Flanger (svisj).',
+        text: 'Slå av «Echo», start låten igjen, og prøv «Reverb» (romklang) eller «Flanger» (svisj).',
         target: ['deck-a-fx'],
-        waiting: 'Slå på Reverb eller Flanger …',
+        waiting: 'Slå på «Reverb» eller «Flanger» …',
         done: ({ snap }) => deck(snap, 'A').fx.reverb.on || deck(snap, 'A').fx.flanger.on
       },
       {
@@ -379,7 +379,7 @@ export const LESSONS: Record<LessonId, Tour> = {
         title: 'Start opptaket',
         text: 'Trykk «Ta opp» øverst til høyre. Alt du hører blir tatt opp.',
         target: ['record'],
-        waiting: 'Trykk Ta opp …',
+        waiting: 'Trykk «Ta opp» …',
         done: ({ snap }) => snap.app.recording.status === 'recording'
       },
       {
@@ -387,7 +387,7 @@ export const LESSONS: Record<LessonId, Tour> = {
         title: 'Stopp og lagre',
         text: 'Miks litt – og trykk så «Stopp opptak». Velg hvor fila skal lagres.',
         target: ['record'],
-        waiting: 'Trykk Stopp opptak …',
+        waiting: 'Trykk «Stopp opptak» …',
         done: ({ snap }) => snap.app.recording.status === 'idle' || snap.app.recording.status === 'unsaved'
       },
       {

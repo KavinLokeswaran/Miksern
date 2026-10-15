@@ -39,6 +39,10 @@ export type Action =
   /** Laster øvelses-beat 1 (120 BPM) eller 2 (124 BPM). */
   | { type: 'practice/load'; deck: DeckId; beat: 1 | 2; play?: boolean }
   | { type: 'settings/setAdvanced'; value: boolean }
+  | { type: 'settings/setTips'; value: boolean }
+  /** Glem hvilke tips som er vist, så de kan vises igjen. */
+  | { type: 'settings/resetTips' }
+  | { type: 'tips/dismiss' }
   /** Grunnkurs og leksjoner. `tour` er 'intro' eller en leksjons-ID. */
   | { type: 'learn/start'; tour: string }
   | { type: 'learn/next' }

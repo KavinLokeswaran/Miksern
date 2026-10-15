@@ -7,7 +7,7 @@ describe('tastatursnarveier', () => {
     expect(shortcutFor('KeyP')?.action).toEqual({ type: 'deck/togglePlay', deck: 'B' })
   })
 
-  it('flytter kryssslideren med pilene', () => {
+  it('flytter krysslideren med pilene', () => {
     const left = shortcutFor('ArrowLeft')!.action
     expect(typeof left === 'function' && left({ crossfader: 0.5 })).toEqual({
       type: 'mixer/setCrossfader',
