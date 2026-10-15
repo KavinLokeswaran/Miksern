@@ -52,6 +52,11 @@ describe('sortering', () => {
     expect(visibleTracks(tracks, '', { key: 'duration', direction: 'desc' }).map((t) => t.title)).toEqual(['Allegro', 'Blå', 'Zulu'])
   })
 
+  it('bruker analysert BPM foran BPM fra taggene', () => {
+    const analysis = { [tracks[2].id]: { grid: { bpm: 90, firstBeat: 0 } } }
+    expect(visibleTracks(tracks, '', { key: 'bpm', direction: 'asc' }, analysis).map((t) => t.title)).toEqual(['Zulu', 'Allegro', 'Blå'])
+  })
+
   it('sorterer artister alfabetisk på norsk, uten artist sist', () => {
     expect(visibleTracks(tracks, '', { key: 'artist', direction: 'asc' }).map((t) => t.artist)).toEqual(['Café Del Mar', 'Ørjan', null])
   })

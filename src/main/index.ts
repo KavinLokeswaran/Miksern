@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { APP_NAME } from '../shared/appInfo'
 import { IPC } from '../shared/ipc'
+import { getAnalysis, saveAnalysis } from './analysisStore'
 import { appData } from './appData'
 import { addAccessRule, pickAudioFile, readAudioFile } from './fileAccess'
 import { getLibrary, isLibraryFile, markTrackProblem, pickLibraryFolder, rescanLibrary } from './library/libraryService'
@@ -16,9 +17,9 @@ if (!app.isPackaged && process.env.MIKSEREN_USER_DATA) app.setPath('userData', p
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1440,
-    height: 900,
+    height: 940,
     minWidth: 1180,
-    minHeight: 740,
+    minHeight: 820,
     title: APP_NAME,
     backgroundColor: '#0e1014',
     show: false,
@@ -28,7 +29,9 @@ function createWindow(): BrowserWindow {
       nodeIntegration: false,
       sandbox: true,
       // En DJ-app må kunne spille lyd uten at man først klikker i vinduet.
-      autoplayPolicy: 'no-user-gesture-required'
+      autoplayPolicy: 'no-user-gesture-required',
+      // Appen skal fungere like godt når vinduet ikke er i fokus (f.eks. under analyse og avspilling).
+      backgroundThrottling: false
     }
   })
 
@@ -62,6 +65,10 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.pickLibraryFolder, (event) => pickLibraryFolder(BrowserWindow.fromWebContents(event.sender)))
   ipcMain.handle(IPC.rescanLibrary, (event) => rescanLibrary(BrowserWindow.fromWebContents(event.sender)))
   ipcMain.handle(IPC.markTrackProblem, (_event, id: unknown, status: unknown) => markTrackProblem(id, status))
+  ipcMain.handle(IPC.getAnalysis, (_event, path: unknown) => getAnalysis(path))
+  ipcMain.handle(IPC.saveAnalysis, (_event, path: unknown, analysis: unknown, waveform: unknown) =>
+    saveAnalysis(path, analysis, waveform)
+  )
   addAccessRule(isLibraryFile)
 
   createWindow()

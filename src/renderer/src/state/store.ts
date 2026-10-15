@@ -1,7 +1,9 @@
 import { create } from 'zustand'
+import type { BeatGrid } from '@shared/analysis'
 import { DECK_IDS, type DeckId } from '../audio/types'
 
 export type DeckStatus = 'empty' | 'loading' | 'ready' | 'error'
+export type AnalysisStatus = 'none' | 'running' | 'done'
 
 export interface DeckState {
   status: DeckStatus
@@ -11,12 +13,22 @@ export interface DeckState {
   artist: string | null
   /** Lengde i sekunder. */
   duration: number
+  /** Låtens eget tempo (uten tempo-slideren), fra analysen eller filens tagger. */
   bpm: number | null
+  /** Beatgrid fra analysen. Trengs for Synk og fasemåler. */
+  grid: BeatGrid | null
+  analysis: AnalysisStatus
+  /** Tempo-slideren, som brøk: 0.05 = 5 % raskere. */
+  pitch: number
+  /** Følger tempoet og slagene til den andre decken. */
+  synced: boolean
   isPlaying: boolean
   /** Volumfader, 0–1. */
   volume: number
   /** Vennlig feilmelding hvis noe gikk galt. */
   error: string | null
+  /** Kort beskjed som forsvinner av seg selv (f.eks. hvorfor Synk ikke gikk). */
+  notice: string | null
 }
 
 export interface MixerState {
@@ -38,9 +50,14 @@ export const initialDeckState: DeckState = {
   artist: null,
   duration: 0,
   bpm: null,
+  grid: null,
+  analysis: 'none',
+  pitch: 0,
+  synced: false,
   isPlaying: false,
   volume: 0.8,
-  error: null
+  error: null,
+  notice: null
 }
 
 export function createInitialState(): AppState {

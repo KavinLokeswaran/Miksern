@@ -1,4 +1,4 @@
-import type { TrackInfo } from '@shared/library'
+import type { AnalysisSummary, TrackInfo } from '@shared/library'
 
 export type SortKey = 'title' | 'artist' | 'duration' | 'bpm'
 export interface SortOrder {
@@ -26,8 +26,9 @@ export function matchesSearch(track: TrackInfo, query: string): boolean {
 
 const collator = new Intl.Collator('nb', { numeric: true, sensitivity: 'base' })
 
-export function trackBpm(track: TrackInfo, analysedBpm?: number | null): number | null {
-  return analysedBpm ?? track.tagBpm
+/** BPM fra appens egen analyse, ellers fra filens tagger. */
+export function trackBpm(track: TrackInfo, analysis?: AnalysisSummary): number | null {
+  return analysis?.grid?.bpm ?? track.tagBpm
 }
 
 function compareNullable(a: number | null, b: number | null): number {
@@ -37,7 +38,12 @@ function compareNullable(a: number | null, b: number | null): number {
   return a - b
 }
 
-export function compareTracks(a: TrackInfo, b: TrackInfo, key: SortKey): number {
+export function compareTracks(
+  a: TrackInfo,
+  b: TrackInfo,
+  key: SortKey,
+  analysis: Record<string, AnalysisSummary> = {}
+): number {
   switch (key) {
     case 'title':
       return collator.compare(a.title, b.title)
@@ -49,16 +55,21 @@ export function compareTracks(a: TrackInfo, b: TrackInfo, key: SortKey): number 
     case 'duration':
       return compareNullable(a.duration, b.duration)
     case 'bpm':
-      return compareNullable(trackBpm(a), trackBpm(b))
+      return compareNullable(trackBpm(a, analysis[a.id]), trackBpm(b, analysis[b.id]))
   }
 }
 
 /** Låter som kan spilles, filtrert og sortert. */
-export function visibleTracks(tracks: TrackInfo[], query: string, order: SortOrder): TrackInfo[] {
+export function visibleTracks(
+  tracks: TrackInfo[],
+  query: string,
+  order: SortOrder,
+  analysis: Record<string, AnalysisSummary> = {}
+): TrackInfo[] {
   const sign = order.direction === 'asc' ? 1 : -1
   return tracks
     .filter((t) => t.status === 'ok' && matchesSearch(t, query))
-    .sort((a, b) => sign * compareTracks(a, b, order.key) || collator.compare(a.title, b.title))
+    .sort((a, b) => sign * compareTracks(a, b, order.key, analysis) || collator.compare(a.title, b.title))
 }
 
 /** Klikk på samme kolonne bytter retning. Ny kolonne starter stigende. */

@@ -4,13 +4,27 @@ import type { DeckId } from '../audio/types'
  * Stabile ID-er for alle kontroller (data-tour-id). Introen, leksjonene og
  * hjelpeboblene peker på kontrollene med disse. Ikke endre en ID som er i bruk.
  */
-export const DECK_CONTROLS = ['panel', 'load', 'play', 'track', 'time', 'bpm', 'position', 'volume', 'meter'] as const
+export const DECK_CONTROLS = [
+  'panel',
+  'load',
+  'play',
+  'track',
+  'time',
+  'bpm',
+  'position',
+  'volume',
+  'meter',
+  'tempo',
+  'sync',
+  'waveform'
+] as const
 export type DeckControl = (typeof DECK_CONTROLS)[number]
 
 export const GLOBAL_CONTROLS = [
   'crossfader',
   'master-volume',
   'master-meter',
+  'phase-meter',
   'library',
   'library-folder',
   'library-rescan',

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { TrackInfo } from '@shared/library'
+import type { AnalysisSummary, TrackInfo } from '@shared/library'
 import { dispatch } from '../actions/dispatch'
 import { DECK_IDS, type DeckId } from '../audio/types'
 import { startTrackDrag } from '../library/dragTrack'
 import { trackBpm, type SortKey, type SortOrder } from '../library/filterSort'
+import { useLibraryStore } from '../state/libraryStore'
 import { useAppStore } from '../state/store'
 import { formatTime } from '../util/format'
 
@@ -30,6 +31,7 @@ export function TrackList({ tracks, sort, emptyText }: Props): React.JSX.Element
   const [height, setHeight] = useState(400)
   const loadedA = useAppStore((s) => s.decks.A.trackId)
   const loadedB = useAppStore((s) => s.decks.B.trackId)
+  const analysis = useLibraryStore((s) => s.analysis)
 
   useEffect(() => {
     const el = scrollRef.current
@@ -74,6 +76,7 @@ export function TrackList({ tracks, sort, emptyText }: Props): React.JSX.Element
               <TrackRow
                 key={track.id}
                 track={track}
+                analysis={analysis[track.id]}
                 top={(first + i) * ROW_HEIGHT}
                 loadedOn={DECK_IDS.filter((d) => (d === 'A' ? loadedA : loadedB) === track.id)}
                 isFirst={first + i === 0}
@@ -88,14 +91,15 @@ export function TrackList({ tracks, sort, emptyText }: Props): React.JSX.Element
 
 interface RowProps {
   track: TrackInfo
+  analysis: AnalysisSummary | undefined
   top: number
   loadedOn: DeckId[]
   /** Bare første rad får tour-ID-ene, så introen har ett sted å peke. */
   isFirst: boolean
 }
 
-function TrackRow({ track, top, loadedOn, isFirst }: RowProps): React.JSX.Element {
-  const bpm = trackBpm(track)
+function TrackRow({ track, analysis, top, loadedOn, isFirst }: RowProps): React.JSX.Element {
+  const bpm = trackBpm(track, analysis)
   return (
     <div
       className="tracks__row tracks__item"

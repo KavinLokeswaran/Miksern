@@ -13,6 +13,9 @@ export type Action =
   | { type: 'deck/pause'; deck: DeckId }
   | { type: 'deck/seek'; deck: DeckId; seconds: number }
   | { type: 'deck/setVolume'; deck: DeckId; value: number }
+  /** Tempo-slideren: -0.08 til 0.08. */
+  | { type: 'deck/setPitch'; deck: DeckId; value: number }
+  | { type: 'deck/toggleSync'; deck: DeckId }
   | { type: 'mixer/setCrossfader'; value: number }
   | { type: 'mixer/setMasterVolume'; value: number }
   | { type: 'library/pickFolder' }
@@ -22,5 +25,6 @@ export type Action =
   // Hendelser som kommer fra lydmotoren, ikke fra brukeren:
   | { type: 'deck/loaded'; deck: DeckId; trackId: string | null }
   | { type: 'deck/ended'; deck: DeckId }
+  | { type: 'deck/analysed'; deck: DeckId }
 
 export type ActionType = Action['type']

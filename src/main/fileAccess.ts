@@ -37,10 +37,16 @@ export async function pickAudioFile(win: BrowserWindow | null): Promise<PickedFi
   return { path, name: basename(path, extname(path)) }
 }
 
-export async function readAudioFile(path: unknown): Promise<ReadFileResult> {
-  if (typeof path !== 'string') return { ok: false, reason: 'not-allowed' }
+/** Har grensesnittet lov til å bruke denne fila? Gir full sti tilbake, eller null. */
+export function allowedPath(path: unknown): string | null {
+  if (typeof path !== 'string') return null
   const full = resolve(path)
-  if (!allowedFiles.has(full) && !accessRules.some((rule) => rule(full))) return { ok: false, reason: 'not-allowed' }
+  return allowedFiles.has(full) || accessRules.some((rule) => rule(full)) ? full : null
+}
+
+export async function readAudioFile(path: unknown): Promise<ReadFileResult> {
+  const full = allowedPath(path)
+  if (!full) return { ok: false, reason: 'not-allowed' }
   try {
     const data = await readFile(full)
     return { ok: true, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) }

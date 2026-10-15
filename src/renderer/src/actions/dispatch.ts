@@ -1,11 +1,15 @@
 import type { ScanResult } from '@shared/library'
+import { analyseDeckTrack } from '../analysis/analysisService'
+import { startBackgroundAnalysis } from '../analysis/backgroundQueue'
+import { setDeckWaveform } from '../analysis/deckWaveforms'
 import { getEngine } from '../audio/AudioEngine'
 import { clamp01 } from '../audio/curves'
 import { DECK_IDS, type DeckId } from '../audio/types'
 import { nextSort } from '../library/filterSort'
-import { findTrack, updateLibrary, useLibraryStore } from '../state/libraryStore'
+import { findTrack, markTrackUnplayable, setTrackAnalysis, updateLibrary, useLibraryStore } from '../state/libraryStore'
 import { useAppStore, updateDeck, updateMixer, type AppState } from '../state/store'
 import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './messages'
+import { applyPitch, clampPitch, otherDeck, showNotice, syncPhase, syncProblem, syncTempo } from './syncLogic'
 import type { Action } from './types'
 
 export type ActionListener = (action: Action, state: AppState) => void
@@ -57,6 +61,8 @@ export async function dispatch(action: Action): Promise<void> {
       const deck = engine.decks[action.deck]
       if (!deck.isLoaded) return
       await engine.resume()
+      // Er decken synket, starter den med slagene oppå den andre decken.
+      if (useAppStore.getState().decks[action.deck].synced) syncPhase(action.deck)
       deck.play()
       updateDeck(action.deck, { isPlaying: true })
       break
@@ -72,6 +78,34 @@ export async function dispatch(action: Action): Promise<void> {
       const value = clamp01(action.value)
       engine.setChannelVolume(action.deck, value)
       updateDeck(action.deck, { volume: value })
+      break
+    }
+    case 'deck/setPitch': {
+      const id = action.deck
+      // Flytter du tempo-slideren selv, slås Synk av for denne decken.
+      updateDeck(id, { synced: false })
+      applyPitch(id, clampPitch(action.value))
+      // Følger den andre decken denne, må den følge med.
+      const follower = otherDeck(id)
+      if (useAppStore.getState().decks[follower].synced) syncTempo(follower)
+      break
+    }
+    case 'deck/toggleSync': {
+      const id = action.deck
+      if (useAppStore.getState().decks[id].synced) {
+        updateDeck(id, { synced: false })
+        break
+      }
+      const problem = syncProblem(id)
+      if (problem) {
+        showNotice(id, problem)
+        return
+      }
+      if (!syncTempo(id)) return
+      // Bare én deck kan følge den andre.
+      updateDeck(otherDeck(id), { synced: false })
+      updateDeck(id, { synced: true })
+      if (engine.decks[id].isPlaying) syncPhase(id)
       break
     }
     case 'mixer/setCrossfader': {
@@ -105,6 +139,7 @@ export async function dispatch(action: Action): Promise<void> {
       updateDeck(action.deck, { isPlaying: false })
       break
     case 'deck/loaded':
+    case 'deck/analysed':
       break
   }
   notify(action)
@@ -112,8 +147,9 @@ export async function dispatch(action: Action): Promise<void> {
 
 function applyScanResult(result: ScanResult): void {
   if (result.ok) {
-    const { folder, tracks, scannedAt } = result.library
-    updateLibrary({ folder, tracks, scannedAt, folderError: null, progress: { phase: 'idle' } })
+    const { folder, tracks, scannedAt, analysis } = result.library
+    updateLibrary({ folder, tracks, scannedAt, analysis, folderError: null, progress: { phase: 'idle' } })
+    startBackgroundAnalysis()
   } else {
     updateLibrary({ folderError: folderErrorMessage(result.reason), progress: { phase: 'idle' } })
   }
@@ -136,6 +172,9 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
   const isCurrent = (): boolean => loadCounter[id] === ticket
 
   deck.unload()
+  setDeckWaveform(id, null)
+  // Ny låt: Synk gjelder ikke lenger, verken for denne decken eller en deck som fulgte den.
+  updateDeck(otherDeck(id), { synced: false })
   updateDeck(id, {
     status: 'loading',
     trackId: source.trackId,
@@ -143,8 +182,12 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
     artist: source.artist,
     duration: 0,
     bpm: null,
+    grid: null,
+    analysis: 'none',
+    synced: false,
     isPlaying: false,
-    error: null
+    error: null,
+    notice: null
   })
 
   const file = await window.mikseren.readAudioFile(source.path)
@@ -160,21 +203,31 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
     const buffer = await engine.decode(data)
     if (!isCurrent()) return
     deck.load(buffer)
-    updateDeck(id, { status: 'ready', duration: buffer.duration })
+    const tagBpm = source.trackId ? (findTrack(source.trackId)?.tagBpm ?? null) : null
+    updateDeck(id, { status: 'ready', duration: buffer.duration, bpm: tagBpm, analysis: 'running' })
     void dispatch({ type: 'deck/loaded', deck: id, trackId: source.trackId })
+    void analyseOnDeck(id, source, buffer, isCurrent)
   } catch {
     if (!isCurrent()) return
     updateDeck(id, { status: 'error', error: loadErrorMessage('undecodable') })
-    if (source.trackId) markUnplayable(source.trackId)
+    if (source.trackId) markTrackUnplayable(source.trackId)
   }
 }
 
-/** Husk at låten ikke kunne spilles, så den hoppes over i listen heretter. */
-function markUnplayable(trackId: string): void {
-  void window.mikseren.markTrackProblem(trackId, 'unreadable')
-  updateLibrary({
-    tracks: useLibraryStore.getState().tracks.map((t) => (t.id === trackId ? { ...t, status: 'unreadable' } : t))
-  })
+/** Finner BPM, beatgrid og bølgeform for låten på decken (fra lageret, eller regner ut nå). */
+async function analyseOnDeck(id: DeckId, source: TrackSource, buffer: AudioBuffer, isCurrent: () => boolean): Promise<void> {
+  try {
+    const { analysis, waveform } = await analyseDeckTrack(source.path, buffer)
+    if (!isCurrent()) return
+    setDeckWaveform(id, { data: waveform, binsPerSecond: analysis.binsPerSecond, bins: waveform.length / 3 })
+    const fallback = useAppStore.getState().decks[id].bpm
+    updateDeck(id, { grid: analysis.grid, bpm: analysis.grid?.bpm ?? fallback, analysis: 'done' })
+    if (source.trackId) setTrackAnalysis(source.trackId, { grid: analysis.grid })
+    void dispatch({ type: 'deck/analysed', deck: id })
+  } catch (err) {
+    console.error('Analysen feilet', err)
+    if (isCurrent()) updateDeck(id, { analysis: 'done' })
+  }
 }
 
 /** Kobler lydmotoren til tilstanden. Kalles én gang ved oppstart. */
@@ -193,7 +246,13 @@ export function initEngine(): void {
 export async function initLibrary(): Promise<void> {
   window.mikseren.onScanProgress((progress) => updateLibrary({ progress }))
   const library = await window.mikseren.getLibrary()
-  updateLibrary({ ready: true, folder: library.folder, tracks: library.tracks, scannedAt: library.scannedAt })
-  // Finn nye eller endrede filer siden sist.
+  updateLibrary({
+    ready: true,
+    folder: library.folder,
+    tracks: library.tracks,
+    analysis: library.analysis,
+    scannedAt: library.scannedAt
+  })
+  // Finn nye eller endrede filer siden sist. Analysen starter når skanningen er ferdig.
   if (library.folder) void dispatch({ type: 'library/rescan' })
 }

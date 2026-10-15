@@ -8,8 +8,8 @@ import { lastPathPart } from '../util/path'
 import { TrackList } from './TrackList'
 
 export function LibraryPanel(): React.JSX.Element {
-  const { ready, folder, tracks, progress, folderError, search, sort } = useLibraryStore()
-  const visible = useMemo(() => visibleTracks(tracks, search, sort), [tracks, search, sort])
+  const { ready, folder, tracks, analysis, analysisProgress, progress, folderError, search, sort } = useLibraryStore()
+  const visible = useMemo(() => visibleTracks(tracks, search, sort, analysis), [tracks, search, sort, analysis])
   const skipped = useMemo(() => tracks.filter((t) => t.status !== 'ok'), [tracks])
   const playable = tracks.length - skipped.length
   const scanning = progress.phase !== 'idle'
@@ -49,6 +49,11 @@ export function LibraryPanel(): React.JSX.Element {
         <span className={`library__status ${scanning ? 'library__status--busy' : ''}`} data-tour-id="library-status" role="status">
           {statusText(progress, playable)}
         </span>
+        {!scanning && analysisProgress && (
+          <span className="library__status library__status--busy" data-help-id="library-status">
+            Analyserer {analysisProgress.done + 1} av {analysisProgress.total}
+          </span>
+        )}
         {skipped.length > 0 && (
           <button
             type="button"

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { effectiveBpm } from '../audio/sync'
 import { dispatch } from '../actions/dispatch'
 import { getEngine } from '../audio/AudioEngine'
 import type { DeckId } from '../audio/types'
@@ -6,7 +7,9 @@ import { deckTourId } from '../help/tourIds'
 import { droppedTrackId, isTrackDrag } from '../library/dragTrack'
 import { useAppStore } from '../state/store'
 import { onTick } from '../ui/ticker'
-import { formatRemaining, formatTime } from '../util/format'
+import { formatBpm, formatRemaining, formatTime } from '../util/format'
+import { OverviewWaveform } from './OverviewWaveform'
+import { TempoControl } from './TempoControl'
 
 export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
   const deck = useAppStore((s) => s.decks[id])
@@ -51,14 +54,16 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
             <>
               <div className="deck__title">{deck.title}</div>
               <div className="deck__artist">
-                {deck.status === 'loading' ? 'Laster inn …' : deck.artist ?? 'Ukjent artist'}
+                {deck.status === 'loading' ? 'Laster inn …' : (deck.artist ?? 'Ukjent artist')}
               </div>
             </>
           )}
         </div>
         <div className="deck__bpm" data-tour-id={t('bpm')}>
-          <span className="deck__bpm-value">{deck.bpm ? deck.bpm.toFixed(1) : '—'}</span>
-          <span className="deck__bpm-label">BPM</span>
+          <span className="deck__bpm-value">
+            {deck.bpm ? formatBpm(effectiveBpm(deck.bpm, deck.pitch)) : deck.analysis === 'running' ? '…' : '—'}
+          </span>
+          <span className="deck__bpm-label">{deck.analysis === 'running' && !deck.bpm ? 'FINNER TEMPO' : 'BPM'}</span>
         </div>
       </header>
 
@@ -67,43 +72,61 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
           {deck.error}
         </div>
       )}
+      {deck.notice && !deck.error && (
+        <div className="deck__notice" role="status">
+          {deck.notice}
+        </div>
+      )}
 
-      <DeckClock id={id} enabled={ready} />
+      <div className="deck__body">
+        <div className="deck__main">
+          <DeckClock id={id} enabled={ready} />
 
-      <div className="deck__controls">
-        <button
-          type="button"
-          className={`deck__play ${deck.isPlaying ? 'deck__play--on' : ''}`}
-          data-tour-id={t('play')}
-          disabled={!ready}
-          aria-pressed={deck.isPlaying}
-          onClick={() => void dispatch({ type: 'deck/togglePlay', deck: id })}
-        >
-          <span className="deck__play-icon" aria-hidden>
-            {deck.isPlaying ? '❚❚' : '▶'}
-          </span>
-          <span>{deck.isPlaying ? 'Pause' : 'Spill av'}</span>
-        </button>
-        <button
-          type="button"
-          className="button deck__load"
-          data-tour-id={t('load')}
-          disabled={deck.status === 'loading'}
-          onClick={() => void dispatch({ type: 'deck/openFile', deck: id })}
-        >
-          Åpne fil …
-        </button>
+          <div className="deck__controls">
+            <button
+              type="button"
+              className={`deck__play ${deck.isPlaying ? 'deck__play--on' : ''}`}
+              data-tour-id={t('play')}
+              disabled={!ready}
+              aria-pressed={deck.isPlaying}
+              onClick={() => void dispatch({ type: 'deck/togglePlay', deck: id })}
+            >
+              <span className="deck__play-icon" aria-hidden>
+                {deck.isPlaying ? '❚❚' : '▶'}
+              </span>
+              <span>{deck.isPlaying ? 'Pause' : 'Spill av'}</span>
+            </button>
+            <button
+              type="button"
+              className={`deck__sync ${deck.synced ? 'deck__sync--on' : ''}`}
+              data-tour-id={t('sync')}
+              disabled={!ready}
+              aria-pressed={deck.synced}
+              onClick={() => void dispatch({ type: 'deck/toggleSync', deck: id })}
+            >
+              Synk <span className="deck__sync-en">(sync)</span>
+            </button>
+            <button
+              type="button"
+              className="button deck__load"
+              data-tour-id={t('load')}
+              disabled={deck.status === 'loading'}
+              onClick={() => void dispatch({ type: 'deck/openFile', deck: id })}
+            >
+              Åpne fil …
+            </button>
+          </div>
+        </div>
+        <TempoControl id={id} />
       </div>
     </section>
   )
 }
 
-/** Tid igjen og posisjonslinje. Oppdateres direkte fra lydmotoren. */
+/** Tid igjen og oversikt over låten. Oppdateres direkte fra lydmotoren. */
 function DeckClock({ id, enabled }: { id: DeckId; enabled: boolean }): React.JSX.Element {
   const remainingRef = useRef<HTMLSpanElement>(null)
   const elapsedRef = useRef<HTMLSpanElement>(null)
-  const fillRef = useRef<HTMLDivElement>(null)
-  const barRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const deck = getEngine().decks[id]
@@ -111,24 +134,14 @@ function DeckClock({ id, enabled }: { id: DeckId; enabled: boolean }): React.JSX
     return onTick(() => {
       const pos = deck.position
       const dur = deck.duration
-      const text = dur > 0 ? formatRemaining(pos, dur) : '-0:00'
+      const text = `${dur > 0 ? formatRemaining(pos, dur) : '-0:00'}|${formatTime(pos)}`
       if (text !== lastText && remainingRef.current && elapsedRef.current) {
-        remainingRef.current.textContent = text
+        remainingRef.current.textContent = dur > 0 ? formatRemaining(pos, dur) : '-0:00'
         elapsedRef.current.textContent = `${formatTime(pos)} / ${formatTime(dur)}`
         lastText = text
       }
-      if (fillRef.current) fillRef.current.style.transform = `scaleX(${dur > 0 ? pos / dur : 0})`
     })
   }, [id])
-
-  const seekFromPointer = (event: React.PointerEvent<HTMLDivElement>): void => {
-    const bar = barRef.current
-    const duration = getEngine().decks[id].duration
-    if (!bar || !enabled || duration <= 0) return
-    const rect = bar.getBoundingClientRect()
-    const fraction = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width))
-    void dispatch({ type: 'deck/seek', deck: id, seconds: fraction * duration })
-  }
 
   return (
     <div className="deck__clock">
@@ -140,18 +153,7 @@ function DeckClock({ id, enabled }: { id: DeckId; enabled: boolean }): React.JSX
           0:00 / 0:00
         </span>
       </div>
-      <div
-        ref={barRef}
-        className={`deck__position ${enabled ? '' : 'deck__position--disabled'}`}
-        data-tour-id={deckTourId(id, 'position')}
-        onPointerDown={seekFromPointer}
-        role="slider"
-        aria-label={`Posisjon i låten på deck ${id}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div ref={fillRef} className="deck__position-fill" />
-      </div>
+      <OverviewWaveform id={id} enabled={enabled} />
     </div>
   )
 }

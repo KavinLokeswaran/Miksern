@@ -1,4 +1,5 @@
 /** Typer for musikkbiblioteket, delt mellom main og grensesnittet. */
+import type { BeatGrid } from './analysis'
 
 /**
  * - ok:          kan spilles av
@@ -28,9 +29,16 @@ export interface TrackInfo {
   status: TrackStatus
 }
 
+/** Kort oppsummering av analysen for en låt (grid er null hvis tempoet var uklart). */
+export interface AnalysisSummary {
+  grid: BeatGrid | null
+}
+
 export interface LibrarySnapshot {
   folder: string | null
   tracks: TrackInfo[]
+  /** Analyserte låter, etter låt-ID. */
+  analysis: Record<string, AnalysisSummary>
   /** Tidspunkt (ms) for siste fullførte skanning. */
   scannedAt: number | null
 }

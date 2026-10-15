@@ -10,6 +10,8 @@ const api: MikserenApi = {
   pickLibraryFolder: () => ipcRenderer.invoke(IPC.pickLibraryFolder),
   rescanLibrary: () => ipcRenderer.invoke(IPC.rescanLibrary),
   markTrackProblem: (id, status) => ipcRenderer.invoke(IPC.markTrackProblem, id, status),
+  getAnalysis: (path) => ipcRenderer.invoke(IPC.getAnalysis, path),
+  saveAnalysis: (path, analysis, waveform) => ipcRenderer.invoke(IPC.saveAnalysis, path, analysis, waveform),
   onScanProgress: (listener) => {
     const handler = (_event: IpcRendererEvent, progress: ScanProgress): void => listener(progress)
     ipcRenderer.on(IPC.scanProgress, handler)

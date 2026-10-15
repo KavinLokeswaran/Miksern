@@ -42,13 +42,28 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
   },
   bpm: {
     title: 'Tempo (BPM)',
-    what: 'BPM betyr «slag per minutt» – hvor raskt låten går.',
+    what: 'BPM betyr «slag per minutt» – hvor raskt låten går akkurat nå. Appen finner det selv.',
     when: 'Låter med nesten samme BPM er lettest å mikse sammen.'
   },
   position: {
-    title: 'Hvor i låten',
-    what: 'Viser hvor langt låten har kommet. Klikk for å hoppe til et annet sted.',
-    when: 'Fint for å finne et godt sted å starte fra.'
+    title: 'Oversikt over låten (waveform)',
+    what: 'Hele låten fra start til slutt. Høye topper er kraftige partier, lave er rolige. Klikk for å hoppe dit.',
+    when: 'Se etter rolige partier – der er det ofte lettest å starte en overgang.'
+  },
+  tempo: {
+    title: 'Tempo (pitch)',
+    what: 'Gjør låten raskere (opp) eller saktere (ned), opptil 8 %. Tonen endres litt også, som på en platespiller.',
+    when: 'Bruk den for å få to låter til å gå i samme tempo. Dobbeltklikk for å nullstille.'
+  },
+  sync: {
+    title: 'Synk (sync)',
+    what: 'Gir deck {deck} samme tempo som den andre decken, og legger slagene oppå hverandre.',
+    when: 'Trykk før eller mens du starter den nye låten. Flytter du tempo-slideren selv, slås Synk av.'
+  },
+  waveform: {
+    title: 'Bølgeform (waveform)',
+    what: 'Lyden i deck {deck} rett rundt der den spiller nå. Streken i midten er «nå». De tynne loddrette strekene er slagene.',
+    when: 'Ligger strekene for A og B rett over hverandre, går låtene i takt.'
   },
   volume: {
     title: 'Volum (kanalfader)',
@@ -77,6 +92,11 @@ export const GLOBAL_HELP: Record<GlobalControl, HelpText> = {
     title: 'Masternivå',
     what: 'Viser hvor høyt hele miksen er.',
     when: 'Lyser det rødt, klipper lyden. Skru ned volumet litt.'
+  },
+  'phase-meter': {
+    title: 'Fasemåler',
+    what: 'Viser om slagene i de to låtene treffer samtidig. Grønt i midten betyr i takt.',
+    when: 'Står den til siden, er én låt litt foran den andre. Trykk Synk for å rette det.'
   },
   library: {
     title: 'Musikkbibliotek',

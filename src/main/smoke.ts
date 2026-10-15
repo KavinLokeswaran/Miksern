@@ -26,6 +26,6 @@ export function setupSmokeTest(win: BrowserWindow): void {
       await writeFile(target, image.toPNG())
       console.log('[smoke] skjermbilde lagret:', target)
       app.quit()
-    }, 2500)
+    }, Number(process.env.MIKSEREN_SMOKE_DELAY ?? 2500))
   })
 }
