@@ -2,11 +2,16 @@ import { join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { APP_NAME } from '../shared/appInfo'
 import { IPC } from '../shared/ipc'
-import { pickAudioFile, readAudioFile } from './fileAccess'
+import { appData } from './appData'
+import { addAccessRule, pickAudioFile, readAudioFile } from './fileAccess'
+import { getLibrary, isLibraryFile, markTrackProblem, pickLibraryFolder, rescanLibrary } from './library/libraryService'
 import { buildMenu } from './menu'
 import { setupSmokeTest } from './smoke'
 
 app.setName(APP_NAME)
+
+// Kun for utvikling og automatiske tester: bruk en egen datamappe.
+if (!app.isPackaged && process.env.MIKSEREN_USER_DATA) app.setPath('userData', process.env.MIKSEREN_USER_DATA)
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -53,12 +58,19 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC.pickAudioFile, (event) => pickAudioFile(BrowserWindow.fromWebContents(event.sender)))
   ipcMain.handle(IPC.readAudioFile, (_event, path: unknown) => readAudioFile(path))
+  ipcMain.handle(IPC.getLibrary, () => getLibrary())
+  ipcMain.handle(IPC.pickLibraryFolder, (event) => pickLibraryFolder(BrowserWindow.fromWebContents(event.sender)))
+  ipcMain.handle(IPC.rescanLibrary, (event) => rescanLibrary(BrowserWindow.fromWebContents(event.sender)))
+  ipcMain.handle(IPC.markTrackProblem, (_event, id: unknown, status: unknown) => markTrackProblem(id, status))
+  addAccessRule(isLibraryFile)
 
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
+
+app.on('before-quit', () => appData().flush())
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

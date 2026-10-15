@@ -29,3 +29,14 @@ describe('filtilgang', () => {
     expect(await readAudioFile(missing)).toEqual({ ok: false, reason: 'not-found' })
   })
 })
+
+describe('tilgangsregler', () => {
+  it('slipper gjennom filer som en regel godtar', async () => {
+    const { addAccessRule } = await import('./fileAccess')
+    const dir = await mkdtemp(join(tmpdir(), 'mikseren-'))
+    const file = join(dir, 'bibliotek.wav')
+    await writeFile(file, 'lyd')
+    addAccessRule((p) => p === file)
+    expect((await readAudioFile(file)).ok).toBe(true)
+  })
+})

@@ -7,7 +7,21 @@ import type { DeckId } from '../audio/types'
 export const DECK_CONTROLS = ['panel', 'load', 'play', 'track', 'time', 'bpm', 'position', 'volume', 'meter'] as const
 export type DeckControl = (typeof DECK_CONTROLS)[number]
 
-export const GLOBAL_CONTROLS = ['crossfader', 'master-volume', 'master-meter'] as const
+export const GLOBAL_CONTROLS = [
+  'crossfader',
+  'master-volume',
+  'master-meter',
+  'library',
+  'library-folder',
+  'library-rescan',
+  'library-status',
+  'library-search',
+  'library-sort',
+  'library-list',
+  'library-load-a',
+  'library-load-b',
+  'library-skipped'
+] as const
 export type GlobalControl = (typeof GLOBAL_CONTROLS)[number]
 
 export type DeckTourId = `deck-${Lowercase<DeckId>}-${DeckControl}`

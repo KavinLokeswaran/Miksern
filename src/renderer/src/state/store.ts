@@ -5,6 +5,8 @@ export type DeckStatus = 'empty' | 'loading' | 'ready' | 'error'
 
 export interface DeckState {
   status: DeckStatus
+  /** ID i biblioteket, eller null for filer åpnet med «Åpne fil». */
+  trackId: string | null
   title: string | null
   artist: string | null
   /** Lengde i sekunder. */
@@ -31,6 +33,7 @@ export interface AppState {
 
 export const initialDeckState: DeckState = {
   status: 'empty',
+  trackId: null,
   title: null,
   artist: null,
   duration: 0,

@@ -9,6 +9,13 @@ import { AUDIO_EXTENSIONS, type PickedFile, type ReadFileResult } from '../share
  */
 const allowedFiles = new Set<string>()
 
+/** Ekstra regler for hvilke filer som er lov å lese (f.eks. filer i musikkbiblioteket). */
+const accessRules: Array<(path: string) => boolean> = []
+
+export function addAccessRule(rule: (path: string) => boolean): void {
+  accessRules.push(rule)
+}
+
 export function allowFile(path: string): void {
   allowedFiles.add(resolve(path))
 }
@@ -33,7 +40,7 @@ export async function pickAudioFile(win: BrowserWindow | null): Promise<PickedFi
 export async function readAudioFile(path: unknown): Promise<ReadFileResult> {
   if (typeof path !== 'string') return { ok: false, reason: 'not-allowed' }
   const full = resolve(path)
-  if (!allowedFiles.has(full)) return { ok: false, reason: 'not-allowed' }
+  if (!allowedFiles.has(full) && !accessRules.some((rule) => rule(full))) return { ok: false, reason: 'not-allowed' }
   try {
     const data = await readFile(full)
     return { ok: true, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) }

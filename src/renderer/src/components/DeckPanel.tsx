@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { dispatch } from '../actions/dispatch'
 import { getEngine } from '../audio/AudioEngine'
 import type { DeckId } from '../audio/types'
 import { deckTourId } from '../help/tourIds'
+import { droppedTrackId, isTrackDrag } from '../library/dragTrack'
 import { useAppStore } from '../state/store'
 import { onTick } from '../ui/ticker'
 import { formatRemaining, formatTime } from '../util/format'
@@ -11,9 +12,35 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
   const deck = useAppStore((s) => s.decks[id])
   const t = (control: Parameters<typeof deckTourId>[1]): string => deckTourId(id, control)
   const ready = deck.status === 'ready'
+  const [dropping, setDropping] = useState(false)
+
+  const onDragOver = (event: React.DragEvent): void => {
+    if (!isTrackDrag(event)) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+    setDropping(true)
+  }
+  const onDrop = (event: React.DragEvent): void => {
+    setDropping(false)
+    const trackId = droppedTrackId(event)
+    if (!trackId) return
+    event.preventDefault()
+    void dispatch({ type: 'deck/loadTrack', deck: id, trackId })
+  }
 
   return (
-    <section className={`deck deck--${id.toLowerCase()}`} data-tour-id={t('panel')} data-no-help aria-label={`Deck ${id}`}>
+    <section
+      className={`deck deck--${id.toLowerCase()} ${dropping ? 'deck--dropping' : ''}`}
+      data-tour-id={t('panel')}
+      data-no-help
+      aria-label={`Deck ${id}`}
+      onDragOver={onDragOver}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropping(false)
+      }}
+      onDrop={onDrop}
+    >
+      {dropping && <div className="deck__drop-hint">Slipp for å laste inn på deck {id}</div>}
       <header className="deck__header">
         <div className="deck__badge" data-help-id={t('panel')}>
           {id}

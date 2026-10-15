@@ -1,6 +1,7 @@
 import { APP_NAME } from '@shared/appInfo'
 import { DeckPanel } from './components/DeckPanel'
 import { HelpBubble } from './components/HelpBubble'
+import { LibraryPanel } from './components/LibraryPanel'
 import { Mixer } from './components/Mixer'
 import { useKeyboardShortcuts } from './ui/useKeyboardShortcuts'
 
@@ -17,9 +18,7 @@ export function App(): React.JSX.Element {
         <Mixer />
         <DeckPanel id="B" />
       </main>
-      <section className="library-placeholder">
-        <p>Last inn en låt på hver deck med «Åpne fil …». Musikkbiblioteket kommer her senere.</p>
-      </section>
+      <LibraryPanel />
       <HelpBubble />
     </div>
   )
