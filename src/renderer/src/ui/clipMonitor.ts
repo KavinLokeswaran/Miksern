@@ -19,10 +19,14 @@ export function startClipMonitor(): void {
   started = true
   const engine = getEngine()
   onTick((now) => {
+    let masterPeak = 0
     for (const target of ['A', 'B', 'master'] as const) {
-      if (engine.readLevel(target).peak >= CLIP_LEVEL) lastClip[target] = now
+      const peak = engine.readLevel(target).peak
+      if (peak >= CLIP_LEVEL) lastClip[target] = now
+      if (target === 'master') masterPeak = peak
     }
-    if (engine.master.limiterReduction > LIMITING_DB) lastLimiting = now
+    // Kompressoren kan melde demping like etter oppstart selv i stillhet. Teller bare når det er sterk lyd.
+    if (engine.master.limiterReduction > LIMITING_DB && masterPeak > 0.5) lastLimiting = now
   })
 }
 

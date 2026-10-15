@@ -1,5 +1,6 @@
 import type { TrackAnalysis, WaveformBytes } from './analysis'
 import type { TrackCues } from './cues'
+import type { Settings } from './settings'
 import type { LibrarySnapshot, ScanProgress, ScanResult, TrackStatus } from './library'
 
 /** Navn på IPC-kanalene mellom main og renderer. */
@@ -19,7 +20,9 @@ export const IPC = {
   recordingChunk: 'recording:chunk',
   recordingStop: 'recording:stop',
   recordingSave: 'recording:save',
-  recordingDiscard: 'recording:discard'
+  recordingDiscard: 'recording:discard',
+  getSettings: 'settings:get',
+  updateSettings: 'settings:update'
 } as const
 
 export type RecordingResult =
@@ -68,6 +71,9 @@ export interface MikserenApi {
   /** Åpner lagre-dialogen på nytt for et opptak som ikke ble lagret. */
   recordingSave(): Promise<RecordingResult>
   recordingDiscard(): Promise<void>
+  getSettings(): Promise<Settings>
+  /** Endrer noen innstillinger og gir alle innstillingene tilbake. */
+  updateSettings(patch: Partial<Settings>): Promise<Settings>
   /** Lytt på fremdrift under skanning. Returnerer en funksjon som slutter å lytte. */
   onScanProgress(listener: (progress: ScanProgress) => void): () => void
 }

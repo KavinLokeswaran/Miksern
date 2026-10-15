@@ -36,6 +36,19 @@ export type Action =
   | { type: 'deck/toggleSync'; deck: DeckId }
   | { type: 'mixer/setCrossfader'; value: number }
   | { type: 'mixer/setMasterVolume'; value: number }
+  /** Laster øvelses-beat 1 (120 BPM) eller 2 (124 BPM). */
+  | { type: 'practice/load'; deck: DeckId; beat: 1 | 2; play?: boolean }
+  | { type: 'settings/setAdvanced'; value: boolean }
+  /** Grunnkurs og leksjoner. `tour` er 'intro' eller en leksjons-ID. */
+  | { type: 'learn/start'; tour: string }
+  | { type: 'learn/next' }
+  | { type: 'learn/back' }
+  | { type: 'learn/skip' }
+  | { type: 'learn/exit' }
+  /** Brukeren valgte øvelses-beats i stedet for egen musikk. */
+  | { type: 'learn/choosePractice' }
+  | { type: 'learn/menu'; open: boolean }
+  | { type: 'learn/dismissToast' }
   | { type: 'recording/start' }
   | { type: 'recording/stop' }
   /** Prøv å lagre et opptak som ikke ble lagret (åpner lagre-dialogen igjen). */

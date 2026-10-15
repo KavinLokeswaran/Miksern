@@ -161,6 +161,21 @@ export const GLOBAL_HELP: Record<GlobalControl, HelpText> = {
     what: 'Viser hvor høyt hele miksen er.',
     when: 'Lyser det rødt, klipper lyden. Skru ned volumet litt.'
   },
+  'help-menu': {
+    title: 'Hjelp og leksjoner',
+    what: 'Her finner du grunnkurset og små leksjoner. Hver leksjon låser opp nye kontroller.',
+    when: 'Ta en leksjon når du er klar for noe nytt.'
+  },
+  'mode-switch': {
+    title: 'Avansert modus',
+    what: 'I Enkel modus vises bare det viktigste. Avansert modus viser alle kontroller med en gang.',
+    when: 'Slå den på hvis du vil utforske alt selv, uten å ta leksjonene først.'
+  },
+  practice: {
+    title: 'Øvelses-beats',
+    what: 'To enkle låter som appen lager selv (120 og 124 BPM), med trommer og bass.',
+    when: 'Fine for å øve, og for leksjonene, også hvis du ikke har egen musikk.'
+  },
   record: {
     title: 'Opptak (record)',
     what: 'Tar opp alt du hører – hele miksen – til en lydfil (WAV).',

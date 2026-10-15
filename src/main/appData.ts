@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { app } from 'electron'
 import { ANALYSIS_VERSION, type TrackAnalysis } from '../shared/analysis'
 import type { TrackCues } from '../shared/cues'
+import { defaultSettings, type Settings } from '../shared/settings'
 import type { AnalysisSummary, LibrarySnapshot, TrackInfo } from '../shared/library'
 import { JsonFile } from './persist'
 
@@ -17,6 +18,7 @@ export interface AppData {
   analysis: Record<string, StoredAnalysisEntry>
   /** Cue-punkt og hot cues per låt-ID. */
   cues: Record<string, TrackCues>
+  settings: Settings
 }
 
 export interface StoredAnalysisEntry extends TrackAnalysis {
@@ -34,7 +36,13 @@ export function isAnalysisValid(
 }
 
 export function defaultAppData(): AppData {
-  return { version: 1, library: { folder: null, scannedAt: null, tracks: {} }, analysis: {}, cues: {} }
+  return {
+    version: 1,
+    library: { folder: null, scannedAt: null, tracks: {} },
+    analysis: {},
+    cues: {},
+    settings: defaultSettings()
+  }
 }
 
 export function migrateAppData(raw: unknown): AppData | null {
@@ -45,7 +53,8 @@ export function migrateAppData(raw: unknown): AppData | null {
     ...data,
     library: { ...defaultAppData().library, ...data.library },
     analysis: data.analysis ?? {},
-    cues: data.cues ?? {}
+    cues: data.cues ?? {},
+    settings: { ...defaultSettings(), ...data.settings }
   }
 }
 

@@ -3,6 +3,7 @@ import { getEngine } from '../audio/AudioEngine'
 import { nearestBeat, quantizedJump } from '../audio/loopMath'
 import type { DeckId } from '../audio/types'
 import { useAppStore, updateDeck } from '../state/store'
+import { realignFollower } from './syncLogic'
 
 /** Cue-punktet til decken: det brukeren har satt, ellers første slag (eller starten). */
 export function cuePosition(id: DeckId): number {
@@ -38,4 +39,5 @@ export function jumpTo(id: DeckId, target: number): void {
   const position = deck.isPlaying && grid ? quantizedJump(target, deck.position, grid) : target
   deck.seek(position)
   syncLoopState(id)
+  realignFollower(id)
 }

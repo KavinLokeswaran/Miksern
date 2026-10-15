@@ -1,5 +1,5 @@
 import type { ScanResult } from '@shared/library'
-import { analyseDeckTrack } from '../analysis/analysisService'
+import { analyseDeckTrack, waveformForBuffer } from '../analysis/analysisService'
 import { startBackgroundAnalysis } from '../analysis/backgroundQueue'
 import { setDeckWaveform } from '../analysis/deckWaveforms'
 import { getEngine } from '../audio/AudioEngine'
@@ -11,9 +11,22 @@ import { nextSort } from '../library/filterSort'
 import { findTrack, markTrackUnplayable, setTrackAnalysis, updateLibrary, useLibraryStore } from '../state/libraryStore'
 import { useAppStore, updateDeck, updateMixer, updateRecording, type AppState } from '../state/store'
 import { cuePosition, jumpTo, persistCues, quantize, syncLoopState } from './cueLogic'
+import { handleLearnAction } from '../learn/learnController'
+import { PRACTICE_BEATS } from '../practice/arrangement'
+import { getPracticeBeat } from '../practice/practiceBeats'
+import { patchSettings } from '../state/settingsStore'
 import { applyRecordingResult, getRecorder } from './recordingLogic'
 import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './messages'
-import { applyPitch, clampPitch, otherDeck, showNotice, syncPhase, syncProblem, syncTempo } from './syncLogic'
+import {
+  applyPitch,
+  clampPitch,
+  otherDeck,
+  realignFollower,
+  showNotice,
+  syncPhase,
+  syncProblem,
+  syncTempo
+} from './syncLogic'
 import type { Action } from './types'
 
 const clampUnit = (x: number): number => Math.max(-1, Math.min(1, x))
@@ -71,6 +84,7 @@ export async function dispatch(action: Action): Promise<void> {
       if (useAppStore.getState().decks[action.deck].synced) syncPhase(action.deck)
       deck.play()
       updateDeck(action.deck, { isPlaying: true })
+      realignFollower(action.deck)
       break
     }
     case 'deck/pause':
@@ -80,6 +94,7 @@ export async function dispatch(action: Action): Promise<void> {
     case 'deck/seek':
       engine.decks[action.deck].seek(action.seconds)
       syncLoopState(action.deck)
+      realignFollower(action.deck)
       break
     case 'deck/cue': {
       const id = action.deck
@@ -258,6 +273,22 @@ export async function dispatch(action: Action): Promise<void> {
       updateMixer({ masterVolume: value })
       break
     }
+    case 'practice/load':
+      await loadPractice(action.deck, action.beat, action.play ?? false)
+      break
+    case 'settings/setAdvanced':
+      patchSettings({ advancedMode: action.value })
+      break
+    case 'learn/start':
+    case 'learn/next':
+    case 'learn/back':
+    case 'learn/skip':
+    case 'learn/exit':
+    case 'learn/choosePractice':
+    case 'learn/menu':
+    case 'learn/dismissToast':
+      handleLearnAction(action)
+      break
     case 'library/pickFolder': {
       const result = await window.mikseren.pickLibraryFolder()
       if (!result) return
@@ -303,13 +334,13 @@ interface TrackSource {
 /** Teller lastinger, så en treg, gammel lasting ikke overskriver en nyere. */
 const loadCounter: Record<DeckId, number> = { A: 0, B: 0 }
 
-async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
-  const engine = getEngine()
-  const deck = engine.decks[id]
+/** Gjør decken klar for en ny låt. Gir en funksjon som sier om denne lastingen fortsatt gjelder. */
+function beginLoad(
+  id: DeckId,
+  source: { trackId: string | null; path: string | null; title: string; artist: string | null }
+): () => boolean {
   const ticket = ++loadCounter[id]
-  const isCurrent = (): boolean => loadCounter[id] === ticket
-
-  deck.unload()
+  getEngine().decks[id].unload()
   setDeckWaveform(id, null)
   // Ny låt: Synk gjelder ikke lenger, verken for denne decken eller en deck som fulgte den.
   updateDeck(otherDeck(id), { synced: false })
@@ -331,6 +362,13 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
     error: null,
     notice: null
   })
+  return () => loadCounter[id] === ticket
+}
+
+async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
+  const engine = getEngine()
+  const deck = engine.decks[id]
+  const isCurrent = beginLoad(id, source)
 
   const file = await window.mikseren.readAudioFile(source.path)
   if (!isCurrent()) return
@@ -356,6 +394,35 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
     if (!isCurrent()) return
     updateDeck(id, { status: 'error', error: loadErrorMessage('undecodable') })
     if (source.trackId) markTrackUnplayable(source.trackId)
+  }
+}
+
+/** Laster en øvelses-beat. Tempo og beatgrid er kjent, så bare bølgeformen må regnes ut. */
+async function loadPractice(id: DeckId, beat: 1 | 2, play: boolean): Promise<void> {
+  const spec = PRACTICE_BEATS[beat]
+  const isCurrent = beginLoad(id, {
+    trackId: `practice-${beat}`,
+    path: null,
+    title: spec.title,
+    artist: 'Mikseren (øvelse)'
+  })
+  try {
+    const buffer = await getPracticeBeat(beat)
+    if (!isCurrent()) return
+    getEngine().decks[id].load(buffer)
+    const grid = { bpm: spec.bpm, firstBeat: 0 }
+    // Tempoet er kjent, så Synk og loops virker med en gang. Bølgeformen kommer straks etter.
+    updateDeck(id, { status: 'ready', duration: buffer.duration, bpm: spec.bpm, grid, analysis: 'done' })
+    void dispatch({ type: 'deck/loaded', deck: id, trackId: null })
+    if (play) await dispatch({ type: 'deck/play', deck: id })
+    const waveform = await waveformForBuffer(buffer)
+    if (!isCurrent()) return
+    setDeckWaveform(id, waveform)
+    updateDeck(id, { analysis: 'done' })
+    void dispatch({ type: 'deck/analysed', deck: id })
+  } catch (err) {
+    console.error('Øvelses-beaten feilet', err)
+    if (isCurrent()) updateDeck(id, { status: 'error', error: 'Klarte ikke å lage øvelses-beaten. Prøv igjen.' })
   }
 }
 

@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { dispatch } from '../actions/dispatch'
+import { useGroupVisible } from '../learn/useGroupVisible'
 import { useAppStore } from '../state/store'
 import { onTick } from '../ui/ticker'
 import { formatTime } from '../util/format'
 import { lastPathPart } from '../util/path'
 
 /** Opptaksknappen øverst, med tid mens den tar opp og beskjed når fila er lagret. */
-export function RecordButton(): React.JSX.Element {
+export function RecordButton(): React.JSX.Element | null {
   const recording = useAppStore((s) => s.recording)
+  const visible = useGroupVisible('recording')
   const timeRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
@@ -21,6 +23,8 @@ export function RecordButton(): React.JSX.Element {
     })
   }, [recording.status, recording.startedAt])
 
+  // Et opptak som pågår eller venter på lagring, vises alltid.
+  if (!visible && recording.status === 'idle') return null
   const busy = recording.status === 'starting' || recording.status === 'stopping'
   const isRecording = recording.status === 'recording'
 

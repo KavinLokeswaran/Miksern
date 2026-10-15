@@ -5,6 +5,7 @@ import { trackProblemMessage } from '../actions/messages'
 import { visibleTracks } from '../library/filterSort'
 import { useLibraryStore } from '../state/libraryStore'
 import { lastPathPart } from '../util/path'
+import { PracticeMenu } from './PracticeMenu'
 import { TrackList } from './TrackList'
 
 export function LibraryPanel(): React.JSX.Element {
@@ -70,6 +71,7 @@ export function LibraryPanel(): React.JSX.Element {
             {showSkipped ? '▴' : '▾'}
           </button>
         )}
+        <PracticeMenu />
         <input
           type="search"
           className="library__search"
@@ -126,6 +128,9 @@ function EmptyLibrary(): React.JSX.Element {
       >
         Velg musikkmappe …
       </button>
+      <p className="library__welcome-alt">
+        Ingen musikk for hånden? Bruk «Øvelses-beats» oppe til høyre – to låter appen lager selv.
+      </p>
     </div>
   )
 }

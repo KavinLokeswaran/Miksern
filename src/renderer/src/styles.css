@@ -595,7 +595,8 @@ input:focus-visible,
 .mixer__knobs {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 4px;
   min-height: 0;
 }
 
@@ -1470,4 +1471,373 @@ input:focus-visible,
   gap: 8px;
   font-size: 13px;
   color: var(--warn);
+}
+
+/* ---------- Grunnkurs og leksjoner (overlay) ---------- */
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+}
+
+.tour__dim {
+  position: absolute;
+  inset: 0;
+}
+
+.tour__ring {
+  position: absolute;
+  border: 2px solid var(--warn);
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px rgba(255, 210, 61, 0.25);
+  animation: tour-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tour-pulse {
+  50% {
+    box-shadow: 0 0 0 9px rgba(255, 210, 61, 0.08);
+  }
+}
+
+.tour__card {
+  position: absolute;
+  width: 360px;
+  padding: 16px 18px 12px;
+  border-radius: 14px;
+  background: #1f2430;
+  border: 1px solid #3a4150;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  user-select: text;
+  transition:
+    left 0.2s,
+    top 0.2s;
+}
+
+.tour__card--success {
+  border-color: var(--ok);
+}
+
+.tour__meta {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tour__title {
+  margin: 4px 0 6px;
+  font-size: 18px;
+}
+
+.tour__text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tour__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tour__status {
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tour__status--ok {
+  background: rgba(61, 220, 132, 0.15);
+  color: var(--ok);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.tour__nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tour__spacer {
+  flex: 1;
+}
+
+.tour__link {
+  border: none;
+  background: none;
+  padding: 4px 2px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tour__link:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.tour__link:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.button--accent {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #0b0d11;
+}
+
+/* ---------- ?-meny, modusbryter og beskjeder ---------- */
+
+.helpmenu {
+  position: relative;
+  margin-left: 12px;
+}
+
+.helpmenu__button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.helpmenu__button[aria-expanded='true'] {
+  border-color: var(--text);
+}
+
+.helpmenu__panel {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  z-index: 800;
+  width: 380px;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 14px;
+  background: #1f2430;
+  border: 1px solid #3a4150;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.helpmenu__heading {
+  padding: 8px 10px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.helpmenu__item {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.helpmenu__item:hover {
+  background: var(--panel-2);
+}
+
+.helpmenu__check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.helpmenu__check--done {
+  background: var(--ok);
+  color: #0b0d11;
+}
+
+.helpmenu__title {
+  display: block;
+  font-weight: 650;
+}
+
+.helpmenu__desc,
+.helpmenu__unlocks {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.helpmenu__unlocks {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--warn);
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 14px;
+  cursor: pointer;
+}
+
+.mode__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mode__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.mode__track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.mode__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.15s;
+}
+
+.mode__input:checked + .mode__track {
+  background: var(--deck-a);
+  border-color: var(--deck-a);
+}
+
+.mode__input:checked + .mode__track .mode__thumb {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.mode__input:focus-visible + .mode__track {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 950;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 460px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #1f2a22;
+  border: 1px solid var(--ok);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  transform: translateX(-50%);
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+
+.toast__title {
+  font-weight: 700;
+  color: var(--ok);
+}
+
+.toast__text {
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.toast__close {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Øvelses-beats i biblioteket */
+
+.practice {
+  position: relative;
+  margin-left: auto;
+}
+
+.practice + .library__search {
+  margin-left: 0;
+}
+
+.practice__panel {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #1f2430;
+  border: 1px solid #3a4150;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.practice__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.practice__row > span {
+  margin-right: 8px;
+}
+
+.practice__bpm {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.library__welcome-alt {
+  margin-top: 10px !important;
+  font-size: 13px;
 }

@@ -65,3 +65,15 @@ export function syncPhase(id: DeckId): void {
   const position = alignedPosition(engine.decks[id].position, own.grid, otherBeats, match.multiplier)
   engine.decks[id].seek(position)
 }
+
+/**
+ * Den andre decken følger denne (Synk). Starter denne på nytt eller hopper i låten,
+ * legges den andre decken tilbake på slagene, så de fortsatt går i takt.
+ */
+export function realignFollower(id: DeckId): void {
+  const follower = otherDeck(id)
+  const engine = getEngine()
+  if (!useAppStore.getState().decks[follower].synced) return
+  if (!engine.decks[id].isPlaying || !engine.decks[follower].isPlaying) return
+  syncPhase(follower)
+}

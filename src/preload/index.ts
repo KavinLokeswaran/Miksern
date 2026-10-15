@@ -19,6 +19,8 @@ const api: MikserenApi = {
   recordingStop: () => ipcRenderer.invoke(IPC.recordingStop),
   recordingSave: () => ipcRenderer.invoke(IPC.recordingSave),
   recordingDiscard: () => ipcRenderer.invoke(IPC.recordingDiscard),
+  getSettings: () => ipcRenderer.invoke(IPC.getSettings),
+  updateSettings: (patch) => ipcRenderer.invoke(IPC.updateSettings, patch),
   onScanProgress: (listener) => {
     const handler = (_event: IpcRendererEvent, progress: ScanProgress): void => listener(progress)
     ipcRenderer.on(IPC.scanProgress, handler)

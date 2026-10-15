@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { APP_NAME } from '../shared/appInfo'
 import { IPC } from '../shared/ipc'
 import { getAnalysis, saveAnalysis } from './analysisStore'
+import { parseSettingsPatch } from '../shared/settings'
 import { appData } from './appData'
 import { getCues, saveCues } from './cueStore'
 import {
@@ -87,6 +88,11 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.recordingStop, (event) => stopRecording(BrowserWindow.fromWebContents(event.sender)))
   ipcMain.handle(IPC.recordingSave, (event) => saveRecording(BrowserWindow.fromWebContents(event.sender)))
   ipcMain.handle(IPC.recordingDiscard, () => discardRecording())
+  ipcMain.handle(IPC.getSettings, () => appData().get().settings)
+  ipcMain.handle(IPC.updateSettings, (_event, patch: unknown) => {
+    const parsed = parseSettingsPatch(patch) ?? {}
+    return appData().update((d) => ({ ...d, settings: { ...d.settings, ...parsed } })).settings
+  })
   addAccessRule(isLibraryFile)
 
   createWindow()

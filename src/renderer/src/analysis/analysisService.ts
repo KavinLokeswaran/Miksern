@@ -46,3 +46,12 @@ export async function analyseFileInBackground(path: string): Promise<StoredAnaly
   await window.mikseren.saveAnalysis(path, stored.analysis, stored.waveform)
   return stored
 }
+
+/** Bare bølgeformen for en lyd vi allerede kjenner tempoet til (f.eks. øvelses-beatene). */
+export async function waveformForBuffer(
+  buffer: AudioBuffer
+): Promise<{ data: Uint8Array; binsPerSecond: number; bins: number }> {
+  const { mono, sampleRate } = toAnalysisMono(audioBufferChannels(buffer), buffer.sampleRate)
+  const output = await deckWorker.analyse(mono, sampleRate)
+  return { data: output.waveform, binsPerSecond: output.binsPerSecond, bins: output.waveform.length / 3 }
+}

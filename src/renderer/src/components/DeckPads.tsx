@@ -3,28 +3,39 @@ import { FX_KINDS, type FxKind } from '../audio/fxMath'
 import { LOOP_SIZES, loopLabel } from '../audio/loopMath'
 import type { DeckId } from '../audio/types'
 import { deckTourId } from '../help/tourIds'
+import type { ControlGroup } from '../learn/controlGroups'
+import { useGroupVisible } from '../learn/useGroupVisible'
 import { useAppStore, type DeckPanelKind } from '../state/store'
 import { formatTime } from '../util/format'
 import { HOT_CUE_COLORS } from '../waveform/markers'
 import { Knob } from './Knob'
 
-const TABS: { panel: DeckPanelKind; label: string }[] = [
-  { panel: 'hotcues', label: 'Hot cues' },
-  { panel: 'loops', label: 'Loops' },
-  { panel: 'fx', label: 'Effekter' }
+const TABS: { panel: DeckPanelKind; label: string; group: ControlGroup }[] = [
+  { panel: 'hotcues', label: 'Hot cues', group: 'hotcues' },
+  { panel: 'loops', label: 'Loops', group: 'loops' },
+  { panel: 'fx', label: 'Effekter', group: 'fx' }
 ]
 
 const FX_NAMES: Record<FxKind, string> = { echo: 'Echo', reverb: 'Reverb', flanger: 'Flanger' }
 const FX_TOUR = { echo: 'fx-echo', reverb: 'fx-reverb', flanger: 'fx-flanger' } as const
 
 /** Fanene nederst på decken: hot cues, loops og effekter. */
-export function DeckPads({ id }: { id: DeckId }): React.JSX.Element {
-  const panel = useAppStore((s) => s.decks[id].panel)
+export function DeckPads({ id }: { id: DeckId }): React.JSX.Element | null {
+  const chosen = useAppStore((s) => s.decks[id].panel)
   const ready = useAppStore((s) => s.decks[id].status === 'ready')
+  const visible: Record<DeckPanelKind, boolean> = {
+    hotcues: useGroupVisible('hotcues'),
+    loops: useGroupVisible('loops'),
+    fx: useGroupVisible('fx')
+  }
+  const tabs = TABS.filter((t) => visible[t.panel])
+  if (tabs.length === 0) return null
+  // Er valgt fane skjult, vis den første synlige.
+  const panel = visible[chosen] ? chosen : tabs[0].panel
   return (
     <div className="pads">
       <div className="pads__tabs" role="tablist" data-tour-id={deckTourId(id, 'tabs')}>
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.panel}
             type="button"
