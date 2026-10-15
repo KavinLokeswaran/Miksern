@@ -12,6 +12,8 @@ export interface Shortcut {
 export const SHORTCUTS: Shortcut[] = [
   { code: 'KeyQ', label: 'Q', action: { type: 'deck/togglePlay', deck: 'A' } },
   { code: 'KeyP', label: 'P', action: { type: 'deck/togglePlay', deck: 'B' } },
+  { code: 'KeyW', label: 'W', action: { type: 'deck/cue', deck: 'A' } },
+  { code: 'KeyO', label: 'O', action: { type: 'deck/cue', deck: 'B' } },
   {
     code: 'ArrowLeft',
     label: '←',

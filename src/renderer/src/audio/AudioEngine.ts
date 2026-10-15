@@ -3,6 +3,7 @@ import { crossfaderGains, faderGain } from './curves'
 import { Deck } from './Deck'
 import { MasterBus } from './MasterBus'
 import type { Level } from './meterMath'
+import type { FxKind } from './fxMath'
 import type { EqBand } from './toneMath'
 import { DECK_IDS, type DeckId, type MeterTarget } from './types'
 
@@ -53,6 +54,14 @@ export class AudioEngine {
 
   setFilter(id: DeckId, value: number): void {
     this.strips[id].setFilter(value)
+  }
+
+  setFx(id: DeckId, kind: FxKind, on: boolean, amount: number): void {
+    this.strips[id].setFx(kind, on, amount)
+  }
+
+  setTempo(id: DeckId, effectiveBpm: number | null): void {
+    this.strips[id].setTempo(effectiveBpm)
   }
 
   setCrossfader(position: number): void {

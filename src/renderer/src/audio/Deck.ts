@@ -1,3 +1,4 @@
+import { wrapInLoop, type LoopRegion } from './loopMath'
 import { Playhead } from './playhead'
 
 /** Kort inn- og uttoning ved start/stopp, så det ikke klikker. */
@@ -20,6 +21,7 @@ export class Deck {
   private source: ActiveSource | null = null
   private readonly clock = new Playhead()
   private rate = 1
+  private loop: LoopRegion | null = null
 
   /** Kalles når låten spiller helt til slutten av seg selv. */
   onEnded: (() => void) | null = null
@@ -40,13 +42,53 @@ export class Deck {
     return this.buffer?.duration ?? 0
   }
 
-  /** Nåværende posisjon i sekunder. */
+  /** Nåværende posisjon i sekunder (tar hensyn til en aktiv loop). */
   get position(): number {
-    const pos = this.clock.position(this.ctx.currentTime)
+    const pos = wrapInLoop(this.clock.position(this.ctx.currentTime), this.loop)
     return Math.min(Math.max(pos, 0), this.duration)
   }
 
+  get loopRegion(): LoopRegion | null {
+    return this.loop
+  }
+
+  /**
+   * Starter (eller endrer) en loop. Lyden går sømløst i ring mellom start og slutt.
+   * Er vi allerede forbi den nye slutten, hopper vi inn i loopen.
+   */
+  setLoop(region: LoopRegion): void {
+    if (!this.buffer) return
+    const now = this.ctx.currentTime
+    const current = this.position
+    // Nullstill klokka her, så loop-matten regner fra en posisjon innenfor loopen.
+    this.clock.set(current, now)
+    this.loop = region
+    const length = region.end - region.start
+    const outside = current >= region.end || current < region.start - length
+    if (outside) {
+      const inside = region.start + ((((current - region.start) % length) + length) % length)
+      this.seek(inside)
+      return
+    }
+    if (this.source) {
+      const node = this.source.node
+      node.loopStart = region.start
+      node.loopEnd = region.end
+      node.loop = true
+    }
+  }
+
+  /** Avslutter loopen. Avspillingen fortsetter videre i låten. */
+  clearLoop(): void {
+    if (!this.loop) return
+    const now = this.ctx.currentTime
+    this.clock.set(this.position, now)
+    this.loop = null
+    if (this.source) this.source.node.loop = false
+  }
+
   load(buffer: AudioBuffer): void {
+    this.loop = null
     this.stopSource()
     this.buffer = buffer
     this.clock.stop(this.ctx.currentTime)
@@ -54,6 +96,7 @@ export class Deck {
   }
 
   unload(): void {
+    this.loop = null
     this.stopSource()
     this.buffer = null
     this.clock.stop(this.ctx.currentTime)
@@ -79,6 +122,8 @@ export class Deck {
   seek(seconds: number): void {
     if (!this.buffer) return
     const pos = Math.min(Math.max(seconds, 0), this.duration)
+    // Hopper du ut av loopen, er loopen ferdig.
+    if (this.loop && (pos < this.loop.start || pos >= this.loop.end)) this.loop = null
     if (this.source) {
       this.stopSource()
       this.startSource(pos)
@@ -102,6 +147,11 @@ export class Deck {
     const node = this.ctx.createBufferSource()
     node.buffer = buffer
     node.playbackRate.value = this.rate
+    if (this.loop) {
+      node.loop = true
+      node.loopStart = this.loop.start
+      node.loopEnd = this.loop.end
+    }
     const envelope = this.ctx.createGain()
     envelope.gain.setValueAtTime(0, now)
     envelope.gain.linearRampToValueAtTime(1, now + FADE_SECONDS)

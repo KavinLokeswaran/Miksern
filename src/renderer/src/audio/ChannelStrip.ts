@@ -1,4 +1,6 @@
 import { dbToGain } from './curves'
+import { EffectChain } from './effects'
+import type { FxKind } from './fxMath'
 import { LevelMeter } from './LevelMeter'
 import { EQ_FREQUENCIES, EQ_MID_Q, eqDb, filterSettings, trimDb, type EqBand } from './toneMath'
 
@@ -22,6 +24,7 @@ export class ChannelStrip {
   readonly highpass: BiquadFilterNode
   readonly fxIn: GainNode
   readonly fxOut: GainNode
+  readonly fx: EffectChain
   readonly preFader: GainNode
   readonly fader: GainNode
   readonly crossfade: GainNode
@@ -57,8 +60,7 @@ export class ChannelStrip {
       this.highpass,
       this.fxIn
     ])
-    // Ingen effekter ennå: koble rett gjennom.
-    this.fxIn.connect(this.fxOut)
+    this.fx = new EffectChain(ctx, this.fxIn, this.fxOut)
     this.connectChain([this.fxOut, this.preFader, this.fader, this.crossfade])
     this.preFader.connect(this.meter.input)
   }
@@ -80,6 +82,17 @@ export class ChannelStrip {
     this.smooth(this.highpass.frequency, highpassHz)
     this.smooth(this.lowpass.Q, lowpassHz < 20000 ? FILTER_RESONANCE_DB : 0)
     this.smooth(this.highpass.Q, highpassHz > 20 ? FILTER_RESONANCE_DB : 0)
+  }
+
+  setFx(kind: FxKind, on: boolean, amount: number): void {
+    const unit = this.fx.units[kind]
+    unit.setAmount(amount)
+    unit.setEnabled(on)
+  }
+
+  /** Ekkoet følger tempoet på decken. */
+  setTempo(effectiveBpm: number | null): void {
+    this.fx.echo.setTempo(effectiveBpm)
   }
 
   setFader(gain: number): void {

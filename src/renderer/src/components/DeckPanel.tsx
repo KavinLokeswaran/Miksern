@@ -8,6 +8,7 @@ import { droppedTrackId, isTrackDrag } from '../library/dragTrack'
 import { useAppStore } from '../state/store'
 import { onTick } from '../ui/ticker'
 import { formatBpm, formatRemaining, formatTime } from '../util/format'
+import { DeckPads } from './DeckPads'
 import { OverviewWaveform } from './OverviewWaveform'
 import { TempoControl } from './TempoControl'
 
@@ -94,6 +95,15 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
           <div className="deck__controls">
             <button
               type="button"
+              className="deck__cue"
+              data-tour-id={t('cue')}
+              disabled={!ready}
+              onClick={() => void dispatch({ type: 'deck/cue', deck: id })}
+            >
+              Cue
+            </button>
+            <button
+              type="button"
               className={`deck__play ${deck.isPlaying ? 'deck__play--on' : ''}`}
               data-tour-id={t('play')}
               disabled={!ready}
@@ -116,6 +126,7 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
               Synk <span className="deck__sync-en">(sync)</span>
             </button>
           </div>
+          <DeckPads id={id} />
         </div>
         <TempoControl id={id} />
       </div>

@@ -12,6 +12,13 @@ const api: MikserenApi = {
   markTrackProblem: (id, status) => ipcRenderer.invoke(IPC.markTrackProblem, id, status),
   getAnalysis: (path) => ipcRenderer.invoke(IPC.getAnalysis, path),
   saveAnalysis: (path, analysis, waveform) => ipcRenderer.invoke(IPC.saveAnalysis, path, analysis, waveform),
+  getCues: (path) => ipcRenderer.invoke(IPC.getCues, path),
+  saveCues: (path, cues) => ipcRenderer.invoke(IPC.saveCues, path, cues),
+  recordingStart: (sampleRate, channels) => ipcRenderer.invoke(IPC.recordingStart, sampleRate, channels),
+  recordingChunk: (data) => ipcRenderer.send(IPC.recordingChunk, data),
+  recordingStop: () => ipcRenderer.invoke(IPC.recordingStop),
+  recordingSave: () => ipcRenderer.invoke(IPC.recordingSave),
+  recordingDiscard: () => ipcRenderer.invoke(IPC.recordingDiscard),
   onScanProgress: (listener) => {
     const handler = (_event: IpcRendererEvent, progress: ScanProgress): void => listener(progress)
     ipcRenderer.on(IPC.scanProgress, handler)

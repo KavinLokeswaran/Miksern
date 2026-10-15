@@ -1,6 +1,8 @@
+import type { FxKind } from '../audio/fxMath'
 import type { EqBand } from '../audio/toneMath'
 import type { DeckId } from '../audio/types'
 import type { SortKey } from '../library/filterSort'
+import type { DeckPanelKind } from '../state/store'
 
 /**
  * Alle handlinger i appen. Knapper, tastatur, (senere) MIDI, introen og tipsene
@@ -18,11 +20,27 @@ export type Action =
   | { type: 'deck/setTrim'; deck: DeckId; value: number }
   | { type: 'deck/setEq'; deck: DeckId; band: EqBand; value: number }
   | { type: 'deck/setFilter'; deck: DeckId; value: number }
+  /** Cue: spiller den, hopper den tilbake til cue-punktet. Står den stille, settes cue-punktet her. */
+  | { type: 'deck/cue'; deck: DeckId }
+  /** Hot cue 1–4 (index 0–3): tom = lagre her, ellers hopp dit. */
+  | { type: 'deck/hotCue'; deck: DeckId; index: number }
+  | { type: 'deck/deleteHotCue'; deck: DeckId; index: number }
+  /** Loop med lengde i slag (0.5, 1, 2, 4, 8, 16). */
+  | { type: 'deck/loop'; deck: DeckId; beats: number }
+  | { type: 'deck/exitLoop'; deck: DeckId }
+  | { type: 'deck/toggleFx'; deck: DeckId; fx: FxKind }
+  | { type: 'deck/setFxAmount'; deck: DeckId; fx: FxKind; value: number }
+  | { type: 'deck/showPanel'; deck: DeckId; panel: DeckPanelKind }
   /** Tempo-slideren: -0.08 til 0.08. */
   | { type: 'deck/setPitch'; deck: DeckId; value: number }
   | { type: 'deck/toggleSync'; deck: DeckId }
   | { type: 'mixer/setCrossfader'; value: number }
   | { type: 'mixer/setMasterVolume'; value: number }
+  | { type: 'recording/start' }
+  | { type: 'recording/stop' }
+  /** Prøv å lagre et opptak som ikke ble lagret (åpner lagre-dialogen igjen). */
+  | { type: 'recording/save' }
+  | { type: 'recording/discard' }
   | { type: 'library/pickFolder' }
   | { type: 'library/rescan' }
   | { type: 'library/setSearch'; query: string }

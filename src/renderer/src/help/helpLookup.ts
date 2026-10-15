@@ -10,8 +10,15 @@ function playKey(deck: DeckId): string {
   return shortcut?.label ?? ''
 }
 
+function cueKey(deck: DeckId): string {
+  const shortcut = SHORTCUTS.find(
+    (s) => typeof s.action === 'object' && s.action.type === 'deck/cue' && s.action.deck === deck
+  )
+  return shortcut?.label ?? ''
+}
+
 function fill(text: string, deck: DeckId): string {
-  return text.replaceAll('{deck}', deck).replaceAll('{key}', playKey(deck))
+  return text.replaceAll('{deck}', deck).replaceAll('{key}', playKey(deck)).replaceAll('{cueKey}', cueKey(deck))
 }
 
 /** Finner hjelpeteksten for en data-tour-id, eller null. */

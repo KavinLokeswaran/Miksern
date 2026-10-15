@@ -1,4 +1,5 @@
 import type { TrackAnalysis, WaveformBytes } from './analysis'
+import type { TrackCues } from './cues'
 import type { LibrarySnapshot, ScanProgress, ScanResult, TrackStatus } from './library'
 
 /** Navn på IPC-kanalene mellom main og renderer. */
@@ -11,8 +12,20 @@ export const IPC = {
   markTrackProblem: 'library:markProblem',
   scanProgress: 'library:progress',
   getAnalysis: 'analysis:get',
-  saveAnalysis: 'analysis:save'
+  saveAnalysis: 'analysis:save',
+  getCues: 'cues:get',
+  saveCues: 'cues:save',
+  recordingStart: 'recording:start',
+  recordingChunk: 'recording:chunk',
+  recordingStop: 'recording:stop',
+  recordingSave: 'recording:save',
+  recordingDiscard: 'recording:discard'
 } as const
+
+export type RecordingResult =
+  | { status: 'saved'; path: string; seconds: number }
+  | { status: 'unsaved'; seconds: number; error?: string }
+  | { status: 'error' }
 
 /** Filtyper appen kan spille av. */
 export const AUDIO_EXTENSIONS = ['mp3', 'wav', 'flac', 'm4a', 'aac'] as const
@@ -45,6 +58,16 @@ export interface MikserenApi {
   getAnalysis(path: string): Promise<StoredAnalysis | null>
   /** Lagrer analysen. Gir låt-ID-en tilbake, eller null hvis det ikke gikk. */
   saveAnalysis(path: string, analysis: TrackAnalysis, waveform: WaveformBytes): Promise<string | null>
+  getCues(path: string): Promise<TrackCues | null>
+  saveCues(path: string, cues: TrackCues): Promise<boolean>
+  recordingStart(sampleRate: number, channels: number): Promise<boolean>
+  /** Sender lyd (16-bit PCM) til opptaksfila. */
+  recordingChunk(data: Uint8Array): void
+  /** Stopper opptaket og åpner lagre-dialogen. */
+  recordingStop(): Promise<RecordingResult>
+  /** Åpner lagre-dialogen på nytt for et opptak som ikke ble lagret. */
+  recordingSave(): Promise<RecordingResult>
+  recordingDiscard(): Promise<void>
   /** Lytt på fremdrift under skanning. Returnerer en funksjon som slutter å lytte. */
   onScanProgress(listener: (progress: ScanProgress) => void): () => void
 }

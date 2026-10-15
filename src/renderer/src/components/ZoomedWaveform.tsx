@@ -6,6 +6,7 @@ import { deckTourId } from '../help/tourIds'
 import { useAppStore } from '../state/store'
 import { onTick } from '../ui/ticker'
 import { cssColor, drawBeatLines, drawWaveform } from '../waveform/draw'
+import { drawMarkers } from '../waveform/markers'
 import { useCanvas } from '../waveform/useCanvas'
 
 /** Hvor mange sekunder (ekte tid) som vises over hele bredden. */
@@ -32,10 +33,11 @@ export function ZoomedWaveform({ id }: { id: DeckId }): React.JSX.Element {
       if (changed === id) dirty = true
     })
     const stop = onTick(() => {
-      const { pitch, grid } = useAppStore.getState().decks[id]
+      const state = useAppStore.getState().decks[id]
+      const { pitch, grid } = state
       const rate = 1 + pitch
       const position = deck.position
-      const key = `${position}|${rate}|${grid?.bpm}|${grid?.firstBeat}`
+      const key = `${position}|${rate}|${grid?.bpm}|${grid?.firstBeat}|${state.cue}|${state.hotCues.join()}|${state.loop?.start}|${state.loop?.end}`
       if (!dirty && key === last) return
       last = key
       dirty = false
@@ -47,6 +49,7 @@ export function ZoomedWaveform({ id }: { id: DeckId }): React.JSX.Element {
       const startTime = position - (size.width / 2) * secondsPerPixel
       drawWaveform(ctx, size.width, size.height, wf, startTime, secondsPerPixel, colors)
       if (grid) drawBeatLines(ctx, size.width, size.height, grid, startTime, secondsPerPixel, '#ffffff')
+      drawMarkers(ctx, size.width, size.height, startTime, secondsPerPixel, state, true)
     })
     return () => {
       stop()

@@ -3,6 +3,7 @@ import { DeckPanel } from './components/DeckPanel'
 import { HelpBubble } from './components/HelpBubble'
 import { LibraryPanel } from './components/LibraryPanel'
 import { Mixer } from './components/Mixer'
+import { RecordButton } from './components/RecordButton'
 import { WaveformRow } from './components/WaveformRow'
 import { useKeyboardShortcuts } from './ui/useKeyboardShortcuts'
 
@@ -13,6 +14,7 @@ export function App(): React.JSX.Element {
       <header className="topbar">
         <div className="topbar__name">{APP_NAME}</div>
         <div className="topbar__hint">Hold musa over en kontroll for å se hva den gjør</div>
+        <RecordButton />
       </header>
       <WaveformRow />
       <main className="stage">

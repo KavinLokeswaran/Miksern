@@ -95,6 +95,49 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
     what: 'Skrur opp eller ned bassen og kicken. Helt ned fjerner nesten all bass («kill»).',
     when: 'I en overgang: ta bassen helt ut på den ene låten, så de to bassene ikke kolliderer. Dobbeltklikk for å nullstille.'
   },
+  cue: {
+    title: 'Cue',
+    what: 'Et startpunkt i låten. Står låten stille, setter Cue startpunktet der du er. Spiller den, hopper Cue tilbake til startpunktet og stopper.',
+    when: 'Finn et godt sted å starte (f.eks. første slag), trykk Cue, og trykk så Spill av når du vil starte låten. Snarvei: {cueKey}.'
+  },
+  tabs: {
+    title: 'Flere verktøy',
+    what: 'Bytt mellom hot cues, loops og effekter for deck {deck}.'
+  },
+  hotcues: {
+    title: 'Hot cues',
+    what: 'Fire snarveier til steder i låten. En tom knapp lagrer stedet du er nå. En full knapp hopper dit.',
+    when: 'Lagre f.eks. refrenget eller et break, så kan du hoppe dit når som helst. Høyreklikk (eller Shift-klikk) for å slette. Hot cues huskes til neste gang.'
+  },
+  loops: {
+    title: 'Loops',
+    what: 'Spiller den samme biten om og om igjen, i takt. Tallet er hvor mange slag loopen er.',
+    when: 'Fint for å forlenge en rolig del mens du gjør klar neste låt. Trykk et annet tall for å endre lengden.'
+  },
+  'loop-exit': {
+    title: 'Avslutt loop',
+    what: 'Slipper loopen, så låten spiller videre som normalt.'
+  },
+  fx: {
+    title: 'Effekter',
+    what: 'Tre effekter du kan legge på deck {deck}. Slå dem av og på, og velg hvor mye med knotten.',
+    when: 'Bruk dem med måte – litt effekt i en overgang låter ofte best.'
+  },
+  'fx-echo': {
+    title: 'Echo (delay)',
+    what: 'Gjentar lyden hvert halve slag, i takt med låten. Slår du den av, klinger ekkoet ut av seg selv.',
+    when: 'Klassisk måte å avslutte en låt på: slå på Echo, og trekk ned volumet.'
+  },
+  'fx-reverb': {
+    title: 'Reverb (romklang)',
+    what: 'Får lyden til å høres ut som den spilles i et stort rom.',
+    when: 'Fint for å gjøre en overgang mykere, eller på et rolig parti.'
+  },
+  'fx-flanger': {
+    title: 'Flanger',
+    what: 'En svevende «jetfly»-lyd som sakte går opp og ned.',
+    when: 'Brukes gjerne i oppbygginger før et drop.'
+  },
   filter: {
     title: 'Filter',
     what: 'Én knott med to filtre. Til venstre blir lyden mørk og dempet (lavpass). Til høyre blir den tynn uten bass (høypass). I midten er filteret av.',
@@ -117,6 +160,11 @@ export const GLOBAL_HELP: Record<GlobalControl, HelpText> = {
     title: 'Masternivå',
     what: 'Viser hvor høyt hele miksen er.',
     when: 'Lyser det rødt, klipper lyden. Skru ned volumet litt.'
+  },
+  record: {
+    title: 'Opptak (record)',
+    what: 'Tar opp alt du hører – hele miksen – til en lydfil (WAV).',
+    when: 'Trykk for å starte. Trykk igjen for å stoppe, så velger du hvor fila skal lagres.'
   },
   limiter: {
     title: 'Limiter',

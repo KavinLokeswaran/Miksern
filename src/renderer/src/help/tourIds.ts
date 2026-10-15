@@ -21,7 +21,16 @@ export const DECK_CONTROLS = [
   'eq-high',
   'eq-mid',
   'eq-low',
-  'filter'
+  'filter',
+  'cue',
+  'tabs',
+  'hotcues',
+  'loops',
+  'loop-exit',
+  'fx',
+  'fx-echo',
+  'fx-reverb',
+  'fx-flanger'
 ] as const
 export type DeckControl = (typeof DECK_CONTROLS)[number]
 
@@ -30,6 +39,7 @@ export const GLOBAL_CONTROLS = [
   'master-volume',
   'master-meter',
   'phase-meter',
+  'record',
   'limiter',
   'clip-warning',
   'library',

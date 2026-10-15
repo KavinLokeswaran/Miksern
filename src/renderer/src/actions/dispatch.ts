@@ -4,10 +4,14 @@ import { startBackgroundAnalysis } from '../analysis/backgroundQueue'
 import { setDeckWaveform } from '../analysis/deckWaveforms'
 import { getEngine } from '../audio/AudioEngine'
 import { clamp01 } from '../audio/curves'
+import { effectiveBpm } from '../audio/sync'
+import { loopAt, resizeLoop } from '../audio/loopMath'
 import { DECK_IDS, type DeckId } from '../audio/types'
 import { nextSort } from '../library/filterSort'
 import { findTrack, markTrackUnplayable, setTrackAnalysis, updateLibrary, useLibraryStore } from '../state/libraryStore'
-import { useAppStore, updateDeck, updateMixer, type AppState } from '../state/store'
+import { useAppStore, updateDeck, updateMixer, updateRecording, type AppState } from '../state/store'
+import { cuePosition, jumpTo, persistCues, quantize, syncLoopState } from './cueLogic'
+import { applyRecordingResult, getRecorder } from './recordingLogic'
 import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './messages'
 import { applyPitch, clampPitch, otherDeck, showNotice, syncPhase, syncProblem, syncTempo } from './syncLogic'
 import type { Action } from './types'
@@ -75,6 +79,120 @@ export async function dispatch(action: Action): Promise<void> {
       break
     case 'deck/seek':
       engine.decks[action.deck].seek(action.seconds)
+      syncLoopState(action.deck)
+      break
+    case 'deck/cue': {
+      const id = action.deck
+      const deck = engine.decks[id]
+      if (!deck.isLoaded) return
+      if (deck.isPlaying) {
+        // Spiller den: tilbake til cue-punktet og stopp.
+        deck.pause()
+        deck.seek(cuePosition(id))
+        updateDeck(id, { isPlaying: false })
+      } else {
+        // Står den stille: sett cue-punktet her (på nærmeste slag).
+        const cue = quantize(deck.position, useAppStore.getState().decks[id].grid)
+        deck.seek(cue)
+        updateDeck(id, { cue })
+        persistCues(id)
+      }
+      syncLoopState(id)
+      break
+    }
+    case 'deck/hotCue': {
+      const id = action.deck
+      const state = useAppStore.getState().decks[id]
+      if (!engine.decks[id].isLoaded || action.index < 0 || action.index >= state.hotCues.length) return
+      const existing = state.hotCues[action.index]
+      if (existing === null) {
+        const hotCues = [...state.hotCues]
+        hotCues[action.index] = quantize(engine.decks[id].position, state.grid)
+        updateDeck(id, { hotCues })
+        persistCues(id)
+      } else {
+        jumpTo(id, existing)
+      }
+      break
+    }
+    case 'deck/deleteHotCue': {
+      const id = action.deck
+      const hotCues = [...useAppStore.getState().decks[id].hotCues]
+      if (hotCues[action.index] === undefined) return
+      hotCues[action.index] = null
+      updateDeck(id, { hotCues })
+      persistCues(id)
+      break
+    }
+    case 'deck/loop': {
+      const id = action.deck
+      const state = useAppStore.getState().decks[id]
+      const deck = engine.decks[id]
+      if (!deck.isLoaded) return
+      if (!state.grid) {
+        showNotice(id, 'Loops trenger at appen vet hvor slagene er, og det fant den ikke i denne låten.')
+        return
+      }
+      const current = deck.loopRegion
+      deck.setLoop(
+        current ? resizeLoop(current, state.grid, action.beats) : loopAt(deck.position, state.grid, action.beats)
+      )
+      syncLoopState(id)
+      break
+    }
+    case 'deck/exitLoop':
+      engine.decks[action.deck].clearLoop()
+      syncLoopState(action.deck)
+      break
+    case 'deck/toggleFx': {
+      const id = action.deck
+      const fx = useAppStore.getState().decks[id].fx
+      const next = { ...fx[action.fx], on: !fx[action.fx].on }
+      engine.setFx(id, action.fx, next.on, next.amount)
+      updateDeck(id, { fx: { ...fx, [action.fx]: next } })
+      break
+    }
+    case 'deck/setFxAmount': {
+      const id = action.deck
+      const fx = useAppStore.getState().decks[id].fx
+      const next = { ...fx[action.fx], amount: clamp01(action.value) }
+      engine.setFx(id, action.fx, next.on, next.amount)
+      updateDeck(id, { fx: { ...fx, [action.fx]: next } })
+      break
+    }
+    case 'deck/showPanel':
+      updateDeck(action.deck, { panel: action.panel })
+      break
+    case 'recording/start': {
+      const status = useAppStore.getState().recording.status
+      if (status !== 'idle') return
+      updateRecording({ status: 'starting', error: null, savedPath: null })
+      await engine.resume()
+      const ok = await getRecorder(() => void dispatch({ type: 'recording/stop' }))
+        .start()
+        .catch(() => false)
+      updateRecording(
+        ok
+          ? { status: 'recording', startedAt: performance.now() }
+          : { status: 'idle', error: 'Klarte ikke å starte opptaket.' }
+      )
+      if (!ok) return
+      break
+    }
+    case 'recording/stop': {
+      if (useAppStore.getState().recording.status !== 'recording') return
+      updateRecording({ status: 'stopping' })
+      await getRecorder(() => undefined).stop()
+      applyRecordingResult(await window.mikseren.recordingStop())
+      break
+    }
+    case 'recording/save':
+      if (useAppStore.getState().recording.status !== 'unsaved') return
+      applyRecordingResult(await window.mikseren.recordingSave())
+      break
+    case 'recording/discard':
+      await window.mikseren.recordingDiscard()
+      updateRecording({ status: 'idle', unsavedSeconds: 0, error: null })
       break
     case 'deck/setVolume': {
       const value = clamp01(action.value)
@@ -198,6 +316,10 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
   updateDeck(id, {
     status: 'loading',
     trackId: source.trackId,
+    path: source.path,
+    cue: null,
+    hotCues: initialHotCues(),
+    loop: null,
     title: source.title,
     artist: source.artist,
     duration: 0,
@@ -223,6 +345,9 @@ async function loadTrack(id: DeckId, source: TrackSource): Promise<void> {
     const buffer = await engine.decode(data)
     if (!isCurrent()) return
     deck.load(buffer)
+    const cues = await window.mikseren.getCues(source.path)
+    if (!isCurrent()) return
+    if (cues) updateDeck(id, { cue: cues.cue, hotCues: cues.hot })
     const tagBpm = source.trackId ? (findTrack(source.trackId)?.tagBpm ?? null) : null
     updateDeck(id, { status: 'ready', duration: buffer.duration, bpm: tagBpm, analysis: 'running' })
     void dispatch({ type: 'deck/loaded', deck: id, trackId: source.trackId })
@@ -255,6 +380,10 @@ async function analyseOnDeck(
   }
 }
 
+function initialHotCues(): (number | null)[] {
+  return useAppStore.getState().decks.A.hotCues.map(() => null)
+}
+
 /** Kobler lydmotoren til tilstanden. Kalles én gang ved oppstart. */
 export function initEngine(): void {
   const engine = getEngine()
@@ -268,6 +397,14 @@ export function initEngine(): void {
   }
   engine.setCrossfader(mixer.crossfader)
   engine.setMasterVolume(mixer.masterVolume)
+  // Ekkoet følger tempoet på decken (låtens BPM og tempo-slideren).
+  useAppStore.subscribe((state, prev) => {
+    for (const id of DECK_IDS) {
+      const d = state.decks[id]
+      const p = prev.decks[id]
+      if (d.bpm !== p.bpm || d.pitch !== p.pitch) engine.setTempo(id, d.bpm ? effectiveBpm(d.bpm, d.pitch) : null)
+    }
+  })
 }
 
 /** Henter biblioteket fra disk og skanner på nytt i bakgrunnen. Kalles én gang ved oppstart. */

@@ -4,6 +4,15 @@ import { APP_NAME } from '../shared/appInfo'
 import { IPC } from '../shared/ipc'
 import { getAnalysis, saveAnalysis } from './analysisStore'
 import { appData } from './appData'
+import { getCues, saveCues } from './cueStore'
+import {
+  abortRecording,
+  discardRecording,
+  saveRecording,
+  startRecording,
+  stopRecording,
+  writeRecordingChunk
+} from './recorder'
 import { addAccessRule, pickAudioFile, readAudioFile } from './fileAccess'
 import { getLibrary, isLibraryFile, markTrackProblem, pickLibraryFolder, rescanLibrary } from './library/libraryService'
 import { buildMenu } from './menu'
@@ -69,6 +78,15 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.saveAnalysis, (_event, path: unknown, analysis: unknown, waveform: unknown) =>
     saveAnalysis(path, analysis, waveform)
   )
+  ipcMain.handle(IPC.getCues, (_event, path: unknown) => getCues(path))
+  ipcMain.handle(IPC.saveCues, (_event, path: unknown, cues: unknown) => saveCues(path, cues))
+  ipcMain.handle(IPC.recordingStart, (_event, sampleRate: unknown, channels: unknown) =>
+    startRecording(sampleRate, channels)
+  )
+  ipcMain.on(IPC.recordingChunk, (_event, data: unknown) => writeRecordingChunk(data))
+  ipcMain.handle(IPC.recordingStop, (event) => stopRecording(BrowserWindow.fromWebContents(event.sender)))
+  ipcMain.handle(IPC.recordingSave, (event) => saveRecording(BrowserWindow.fromWebContents(event.sender)))
+  ipcMain.handle(IPC.recordingDiscard, () => discardRecording())
   addAccessRule(isLibraryFile)
 
   createWindow()
@@ -77,7 +95,10 @@ app.whenReady().then(() => {
   })
 })
 
-app.on('before-quit', () => appData().flush())
+app.on('before-quit', () => {
+  abortRecording()
+  appData().flush()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

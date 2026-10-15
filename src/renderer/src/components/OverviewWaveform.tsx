@@ -5,7 +5,9 @@ import { getEngine } from '../audio/AudioEngine'
 import type { DeckId } from '../audio/types'
 import { deckTourId } from '../help/tourIds'
 import { onTick } from '../ui/ticker'
+import { useAppStore } from '../state/store'
 import { cssColor, drawWaveform } from '../waveform/draw'
+import { drawMarkers } from '../waveform/markers'
 import { useCanvas } from '../waveform/useCanvas'
 
 /** Hele låten i ett bilde. Klikk for å hoppe. Det som er spilt, blir mørkere. */
@@ -38,7 +40,7 @@ export function OverviewWaveform({ id, enabled }: { id: DeckId; enabled: boolean
     }
     render()
 
-    let last = -1
+    let last = ''
     let dirty = true
     const unsubscribe = onDeckWaveformChange((changed) => {
       if (changed !== id) return
@@ -48,8 +50,10 @@ export function OverviewWaveform({ id, enabled }: { id: DeckId; enabled: boolean
     const stop = onTick(() => {
       const duration = deck.duration
       const x = duration > 0 ? Math.round((deck.position / duration) * size.width) : 0
-      if (!dirty && x === last) return
-      last = x
+      const state = useAppStore.getState().decks[id]
+      const key = `${x}|${state.cue}|${state.hotCues.join()}|${state.loop?.start}|${state.loop?.end}`
+      if (!dirty && key === last) return
+      last = key
       dirty = false
       ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0)
       ctx.clearRect(0, 0, size.width, size.height)
@@ -57,6 +61,7 @@ export function OverviewWaveform({ id, enabled }: { id: DeckId; enabled: boolean
       if (duration <= 0) return
       ctx.fillStyle = 'rgba(14, 16, 20, 0.55)'
       ctx.fillRect(0, 0, x, size.height)
+      drawMarkers(ctx, size.width, size.height, 0, duration / size.width, state, false)
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(x - 1, 0, 2, size.height)
     })

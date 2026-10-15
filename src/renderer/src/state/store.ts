@@ -1,15 +1,28 @@
 import { create } from 'zustand'
 import type { BeatGrid } from '@shared/analysis'
+import { HOT_CUE_COUNT } from '@shared/cues'
+import { FX_KINDS, type FxKind } from '../audio/fxMath'
+import type { LoopRegion } from '../audio/loopMath'
 import type { EqBand } from '../audio/toneMath'
 import { DECK_IDS, type DeckId } from '../audio/types'
 
 export type DeckStatus = 'empty' | 'loading' | 'ready' | 'error'
 export type AnalysisStatus = 'none' | 'running' | 'done'
+/** Fanene nederst på decken. */
+export type DeckPanelKind = 'hotcues' | 'loops' | 'fx'
+
+export interface FxState {
+  on: boolean
+  /** Mengde, 0–1. */
+  amount: number
+}
 
 export interface DeckState {
   status: DeckStatus
   /** ID i biblioteket, eller null for filer åpnet med «Åpne fil». */
   trackId: string | null
+  /** Filstien til låten (brukes for å lagre cues). */
+  path: string | null
   title: string | null
   artist: string | null
   /** Lengde i sekunder. */
@@ -36,6 +49,28 @@ export interface DeckState {
   error: string | null
   /** Kort beskjed som forsvinner av seg selv (f.eks. hvorfor Synk ikke gikk). */
   notice: string | null
+  /** Cue-punktet (sekunder), eller null for starten av låten. */
+  cue: number | null
+  /** Hot cues 1–4 (sekunder), null = tom. */
+  hotCues: (number | null)[]
+  /** Aktiv loop, eller null. */
+  loop: LoopRegion | null
+  fx: Record<FxKind, FxState>
+  /** Hvilken fane som vises nederst på decken. */
+  panel: DeckPanelKind
+}
+
+export type RecordingStatus = 'idle' | 'starting' | 'recording' | 'stopping' | 'unsaved'
+
+export interface RecordingState {
+  status: RecordingStatus
+  /** performance.now() da opptaket startet. */
+  startedAt: number | null
+  /** Lengden på et opptak som venter på å bli lagret (sekunder). */
+  unsavedSeconds: number
+  /** Hvor siste opptak ble lagret. */
+  savedPath: string | null
+  error: string | null
 }
 
 export interface MixerState {
@@ -48,6 +83,7 @@ export interface MixerState {
 export interface AppState {
   decks: Record<DeckId, DeckState>
   mixer: MixerState
+  recording: RecordingState
 }
 
 export const initialDeckState: DeckState = {
@@ -67,13 +103,23 @@ export const initialDeckState: DeckState = {
   eq: { low: 0, mid: 0, high: 0 },
   filter: 0,
   error: null,
-  notice: null
+  notice: null,
+  path: null,
+  cue: null,
+  hotCues: Array.from({ length: HOT_CUE_COUNT }, () => null),
+  loop: null,
+  fx: Object.fromEntries(FX_KINDS.map((k) => [k, { on: false, amount: 0.5 }])) as Record<FxKind, FxState>,
+  panel: 'hotcues'
 }
 
 export function createInitialState(): AppState {
   const decks = {} as Record<DeckId, DeckState>
   for (const id of DECK_IDS) decks[id] = { ...initialDeckState }
-  return { decks, mixer: { crossfader: 0.5, masterVolume: 0.8 } }
+  return {
+    decks,
+    mixer: { crossfader: 0.5, masterVolume: 0.8 },
+    recording: { status: 'idle', startedAt: null, unsavedSeconds: 0, savedPath: null, error: null }
+  }
 }
 
 /**
@@ -88,4 +134,8 @@ export function updateDeck(id: DeckId, patch: Partial<DeckState>): void {
 
 export function updateMixer(patch: Partial<MixerState>): void {
   useAppStore.setState((s) => ({ mixer: { ...s.mixer, ...patch } }))
+}
+
+export function updateRecording(patch: Partial<RecordingState>): void {
+  useAppStore.setState((s) => ({ recording: { ...s.recording, ...patch } }))
 }
