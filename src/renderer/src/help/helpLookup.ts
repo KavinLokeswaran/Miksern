@@ -12,7 +12,7 @@ function playKey(deck: DeckId): string {
 
 function cueKey(deck: DeckId): string {
   const shortcut = SHORTCUTS.find(
-    (s) => typeof s.action === 'object' && s.action.type === 'deck/cue' && s.action.deck === deck
+    (s) => !s.shift && typeof s.action === 'object' && s.action.type === 'deck/cue' && s.action.deck === deck
   )
   return shortcut?.label ?? ''
 }

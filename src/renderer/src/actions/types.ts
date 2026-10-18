@@ -22,6 +22,8 @@ export type Action =
   | { type: 'deck/setFilter'; deck: DeckId; value: number }
   /** Cue: spiller den, hopper den tilbake til cue-punktet. Står den stille, settes cue-punktet her. */
   | { type: 'deck/cue'; deck: DeckId }
+  /** Setter cue-punktet akkurat der låten er nå, uten å stoppe eller hoppe (Shift + Cue). */
+  | { type: 'deck/setCueHere'; deck: DeckId }
   /** Hot cue 1–4 (index 0–3): tom = lagre her, ellers hopp dit. */
   | { type: 'deck/hotCue'; deck: DeckId; index: number }
   | { type: 'deck/deleteHotCue'; deck: DeckId; index: number }

@@ -58,14 +58,16 @@ xattr -dr com.apple.quarantine /Applications/Mikseren.app
 
 ### Tastatursnarveier
 
-| Tast | Hva den gjør                     |
-| ---- | -------------------------------- |
-| Q    | Spill av / pause deck A          |
-| P    | Spill av / pause deck B          |
-| W    | Cue på deck A                    |
-| O    | Cue på deck B                    |
-| ← →  | Flytt krysslideren               |
-| Esc  | Lukk grunnkurset eller leksjonen |
+| Tast    | Hva den gjør                                              |
+| ------- | --------------------------------------------------------- |
+| Q       | Spill av / pause deck A                                   |
+| P       | Spill av / pause deck B                                   |
+| W       | Cue på deck A                                             |
+| O       | Cue på deck B                                             |
+| Shift+W | Sett cue på deck A akkurat der låten er nå, uten å stoppe |
+| Shift+O | Sett cue på deck B akkurat der låten er nå, uten å stoppe |
+| ← →     | Flytt krysslideren                                        |
+| Esc     | Lukk grunnkurset eller leksjonen                          |
 
 ## Hvilke filer appen kan spille
 

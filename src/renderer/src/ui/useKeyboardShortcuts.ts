@@ -8,7 +8,7 @@ export function useKeyboardShortcuts(): void {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (isTypingTarget(event.target)) return
-      const shortcut = shortcutFor(event.code)
+      const shortcut = shortcutFor(event.code, event.shiftKey)
       if (!shortcut) return
       // Play-knappene skal ikke slå av og på hvis tasten holdes nede.
       if (event.repeat && typeof shortcut.action === 'object') return

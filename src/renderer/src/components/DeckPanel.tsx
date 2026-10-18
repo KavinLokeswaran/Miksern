@@ -98,7 +98,7 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
               className="deck__cue"
               data-tour-id={t('cue')}
               disabled={!ready}
-              onClick={() => void dispatch({ type: 'deck/cue', deck: id })}
+              onClick={(e) => void dispatch({ type: e.shiftKey ? 'deck/setCueHere' : 'deck/cue', deck: id })}
             >
               Cue
             </button>

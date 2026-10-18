@@ -98,7 +98,7 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
   cue: {
     title: 'Cue',
     what: 'Et startpunkt i låten. Står låten stille, setter Cue startpunktet der du er. Spiller den, hopper Cue tilbake til startpunktet og stopper.',
-    when: 'Finn et godt sted å starte (f.eks. første slag), trykk Cue, og trykk så Spill av når du vil starte låten. Snarvei: {cueKey}.'
+    when: 'Finn et godt sted å starte (f.eks. første slag), trykk Cue, og trykk så Spill av når du vil starte låten. Snarvei: {cueKey}. Hold Shift (Shift+{cueKey} eller Shift-klikk) for å sette cue akkurat der låten er nå, uten at den stopper.'
   },
   tabs: {
     title: 'Flere verktøy',

@@ -28,6 +28,7 @@ describe('hjelpetekster', () => {
     expect(helpFor('deck-a-play')?.when).toContain('Snarvei: Q')
     expect(helpFor('deck-b-play')?.when).toContain('Snarvei: P')
     expect(helpFor('deck-a-cue')?.when).toContain('Snarvei: W')
+    expect(helpFor('deck-b-cue')?.when).toContain('Shift+O')
     for (const id of ['deck-a-load', 'deck-b-meter']) {
       const help = helpFor(id)!
       expect(JSON.stringify(help)).not.toMatch(/\{(deck|key|cueKey)\}/)

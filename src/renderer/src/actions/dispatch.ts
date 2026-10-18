@@ -116,6 +116,15 @@ export async function dispatch(action: Action): Promise<void> {
       syncLoopState(id)
       break
     }
+    case 'deck/setCueHere': {
+      const id = action.deck
+      const deck = engine.decks[id]
+      if (!deck.isLoaded) return
+      // Akkurat der låten er nå – ingen avrunding til slag, og avspillingen fortsetter.
+      updateDeck(id, { cue: deck.position })
+      persistCues(id)
+      break
+    }
     case 'deck/hotCue': {
       const id = action.deck
       const state = useAppStore.getState().decks[id]
