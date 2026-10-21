@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { glideStep, snapToDetent, wheelPixels } from './controlMath'
 
 interface KnobProps {
   value: number
@@ -18,7 +19,11 @@ interface KnobProps {
 }
 
 /** Hvor mange piksler musa må flyttes for å gå fra min til maks. */
-const DRAG_PIXELS = 180
+const DRAG_PIXELS = 200
+/** Musehjul/styreflate: piksler for å gå fra min til maks. */
+const WHEEL_PIXELS = 400
+/** Hvor lenge knotten bruker på å gli tilbake ved dobbeltklikk (millisekunder). */
+const GLIDE_MS = 160
 const SWEEP = 270
 const SIZE = 34
 
@@ -36,8 +41,8 @@ function arc(cx: number, cy: number, r: number, from: number, to: number): strin
 }
 
 /**
- * Dreieknapp. Dra opp/ned, bruk musehjulet eller piltastene.
- * Hold Shift for finjustering. Dobbeltklikk for å nullstille.
+ * Dreieknapp. Dra opp/ned (eller til siden), bruk musehjulet/styreflaten eller piltastene.
+ * Hold Shift for finjustering. Knotten hakker litt i midtstillingen. Dobbeltklikk for å nullstille.
  */
 export function Knob({
   value,
@@ -51,7 +56,11 @@ export function Knob({
   accent,
   valueText
 }: KnobProps): React.JSX.Element {
-  const drag = useRef<{ y: number; value: number } | null>(null)
+  const drag = useRef<{ x: number; y: number; raw: number } | null>(null)
+  /** Siste verdi vi har sendt, så raske bevegelser ikke venter på at React tegner på nytt. */
+  const current = useRef(value)
+  const glide = useRef<number | null>(null)
+  if (!drag.current && glide.current === null) current.current = value
   const clamp = (v: number): number => Math.min(max, Math.max(min, v))
   const range = max - min
   const toAngle = (v: number): number => -SWEEP / 2 + ((v - min) / range) * SWEEP
@@ -60,28 +69,64 @@ export function Knob({
   const c = SIZE / 2
   const changed = Math.abs(value - defaultValue) > 1e-6
 
+  const emit = (v: number): void => {
+    const next = clamp(v)
+    if (next === current.current) return
+    current.current = next
+    onChange(next)
+  }
+  const stopGlide = (): void => {
+    if (glide.current !== null) cancelAnimationFrame(glide.current)
+    glide.current = null
+  }
+  const glideTo = (target: number): void => {
+    stopGlide()
+    const from = current.current
+    const started = performance.now()
+    const frame = (now: number): void => {
+      const t = Math.min((now - started) / GLIDE_MS, 1)
+      emit(glideStep(from, target, t))
+      glide.current = t < 1 ? requestAnimationFrame(frame) : null
+    }
+    glide.current = requestAnimationFrame(frame)
+  }
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
     event.currentTarget.focus()
-    drag.current = { y: event.clientY, value }
+    stopGlide()
+    drag.current = { x: event.clientX, y: event.clientY, raw: current.current }
   }
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>): void => {
-    if (!drag.current) return
+    const d = drag.current
+    if (!d) return
     const fine = event.shiftKey ? 0.25 : 1
-    const delta = ((drag.current.y - event.clientY) / DRAG_PIXELS) * range * fine
-    onChange(clamp(drag.current.value + delta))
+    // Opp og til høyre skrur opp. Hver bevegelse legges til, så Shift kan slås av og på underveis.
+    const px = d.y - event.clientY + (event.clientX - d.x)
+    d.x = event.clientX
+    d.y = event.clientY
+    d.raw = clamp(d.raw + (px / DRAG_PIXELS) * range * fine)
+    emit(event.shiftKey ? d.raw : snapToDetent(d.raw, defaultValue, range))
+  }
+  const onWheel = (event: React.WheelEvent): void => {
+    const horizontalScroll = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+    const px = wheelPixels(horizontalScroll ? event.deltaX : -event.deltaY, event.deltaMode)
+    if (px === 0) return
+    stopGlide()
+    emit(current.current + (px / WHEEL_PIXELS) * range * (event.shiftKey ? 0.25 : 1))
   }
   const endDrag = (): void => {
     drag.current = null
   }
   const onKeyDown = (event: React.KeyboardEvent): void => {
     const step = (event.shiftKey ? 0.01 : 0.05) * range
-    if (event.key === 'ArrowUp' || event.key === 'ArrowRight') onChange(clamp(value + step))
-    else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') onChange(clamp(value - step))
-    else if (event.key === 'Home') onChange(min)
-    else if (event.key === 'End') onChange(max)
-    else if (event.key === 'Enter' || event.key === 'Delete' || event.key === 'Backspace') onChange(defaultValue)
+    const v = current.current
+    if (event.key === 'ArrowUp' || event.key === 'ArrowRight') emit(v + step)
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') emit(v - step)
+    else if (event.key === 'Home') glideTo(min)
+    else if (event.key === 'End') glideTo(max)
+    else if (event.key === 'Enter' || event.key === 'Delete' || event.key === 'Backspace') glideTo(defaultValue)
     else return
     event.preventDefault()
     // Ikke la piltastene også flytte krysslideren.
@@ -104,9 +149,9 @@ export function Knob({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onDoubleClick={() => onChange(defaultValue)}
+        onDoubleClick={() => glideTo(defaultValue)}
         onKeyDown={onKeyDown}
-        onWheel={(e) => onChange(clamp(value - Math.sign(e.deltaY) * 0.03 * range))}
+        onWheel={onWheel}
       >
         <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden>
           <path d={arc(c, c, c - 3, -SWEEP / 2, SWEEP / 2)} className="knob__track" />

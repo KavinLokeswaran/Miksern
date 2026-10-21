@@ -10,6 +10,7 @@ import { onTick } from '../ui/ticker'
 import { formatBpm, formatRemaining, formatTime } from '../util/format'
 import { DeckPads } from './DeckPads'
 import { OverviewWaveform } from './OverviewWaveform'
+import { Platter } from './Platter'
 import { TempoControl } from './TempoControl'
 
 export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
@@ -125,12 +126,55 @@ export function DeckPanel({ id }: { id: DeckId }): React.JSX.Element {
             >
               Synk <span className="deck__sync-en">(sync)</span>
             </button>
+            <NudgeButtons id={id} enabled={ready && deck.isPlaying} />
           </div>
+          <Platter id={id} />
           <DeckPads id={id} />
         </div>
         <TempoControl id={id} />
       </div>
     </section>
+  )
+}
+
+/**
+ * Skyv (nudge): hold inne for å gjøre låten litt raskere eller saktere en kort stund.
+ * Brukes for å legge slagene oppå hverandre uten å endre tempoet.
+ */
+function NudgeButtons({ id, enabled }: { id: DeckId; enabled: boolean }): React.JSX.Element {
+  const press = (direction: -1 | 1) => (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    void dispatch({ type: 'deck/nudge', deck: id, direction })
+  }
+  const release = (): void => void dispatch({ type: 'deck/nudge', deck: id, direction: 0 })
+  const key = (direction: -1 | 1) => (event: React.KeyboardEvent) => {
+    if ((event.key === ' ' || event.key === 'Enter') && !event.repeat)
+      void dispatch({ type: 'deck/nudge', deck: id, direction })
+  }
+  const button = (direction: -1 | 1, label: string, name: string): React.JSX.Element => (
+    <button
+      type="button"
+      className="nudge__button"
+      aria-label={`${name} deck ${id}`}
+      disabled={!enabled}
+      onPointerDown={press(direction)}
+      onPointerUp={release}
+      onPointerCancel={release}
+      onLostPointerCapture={release}
+      onKeyDown={key(direction)}
+      onKeyUp={release}
+      onBlur={release}
+    >
+      {label}
+    </button>
+  )
+  return (
+    <div className="nudge" data-tour-id={deckTourId(id, 'nudge')} role="group" aria-label={`Skyv deck ${id}`}>
+      {button(-1, '‹‹', 'Skyv saktere')}
+      <span className="nudge__label">Skyv</span>
+      {button(1, '››', 'Skyv raskere')}
+    </div>
   )
 }
 

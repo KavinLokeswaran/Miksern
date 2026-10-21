@@ -17,6 +17,9 @@ import { getPracticeBeat } from '../practice/practiceBeats'
 import { handleTipAction } from '../tips/tipController'
 import { patchSettings } from '../state/settingsStore'
 import { applyRecordingResult, getRecorder } from './recordingLogic'
+import { cancelAutoMix, startAutoMix } from './autoMixLogic'
+import { jogEnd, jogMove, jogStart, setNudgeButton } from './jogLogic'
+import { turnsToSeconds } from '../audio/jogMath'
 import { folderErrorMessage, loadErrorMessage, trackProblemMessage } from './messages'
 import {
   applyPitch,
@@ -271,12 +274,51 @@ export async function dispatch(action: Action): Promise<void> {
       if (engine.decks[id].isPlaying) syncPhase(id)
       break
     }
+    case 'deck/jogStart':
+      jogStart(action.deck, action.mode)
+      break
+    case 'deck/jogMove':
+      // Hjulet over en deck som står stille: flytt posisjonen litt, som å dreie platen for hånd.
+      if (!jogMove(action.deck, action.turns)) {
+        const deck = engine.decks[action.deck]
+        if (!deck.isLoaded) return
+        deck.seek(deck.position + turnsToSeconds(action.turns))
+        syncLoopState(action.deck)
+      }
+      break
+    case 'deck/jogEnd':
+      jogEnd(action.deck)
+      break
+    case 'deck/nudge':
+      setNudgeButton(action.deck, action.direction)
+      break
     case 'mixer/setCrossfader': {
+      // Tar du tak i krysslideren selv, overtar du fra auto-overgangen.
+      if (!action.auto) cancelAutoMix()
       const value = clamp01(action.value)
-      engine.setCrossfader(value)
+      engine.setCrossfader(value, useAppStore.getState().mixer.crossfaderCurve)
       updateMixer({ crossfader: value })
       break
     }
+    case 'mixer/setCrossfaderCurve':
+      engine.setCrossfader(useAppStore.getState().mixer.crossfader, action.curve)
+      updateMixer({ crossfaderCurve: action.curve })
+      break
+    case 'mixer/autoMix': {
+      if (useAppStore.getState().mixer.autoMix) {
+        cancelAutoMix()
+        break
+      }
+      const problem = await startAutoMix(dispatch)
+      if (problem) {
+        showNotice(problem.deck, problem.problem)
+        return
+      }
+      break
+    }
+    case 'mixer/setAutoMixBeats':
+      updateMixer({ autoMixBeats: action.beats })
+      break
     case 'mixer/setMasterVolume': {
       const value = clamp01(action.value)
       engine.setMasterVolume(value)
@@ -483,7 +525,7 @@ export function initEngine(): void {
     for (const band of ['low', 'mid', 'high'] as const) engine.setEq(id, band, decks[id].eq[band])
     engine.decks[id].onEnded = () => void dispatch({ type: 'deck/ended', deck: id })
   }
-  engine.setCrossfader(mixer.crossfader)
+  engine.setCrossfader(mixer.crossfader, mixer.crossfaderCurve)
   engine.setMasterVolume(mixer.masterVolume)
   // Ekkoet følger tempoet på decken (låtens BPM og tempo-slideren).
   useAppStore.subscribe((state, prev) => {

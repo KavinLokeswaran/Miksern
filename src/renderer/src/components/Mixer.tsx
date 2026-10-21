@@ -1,9 +1,13 @@
+import { useEffect, useRef } from 'react'
+import { autoMixProgress } from '../actions/autoMixLogic'
 import { dispatch } from '../actions/dispatch'
 import { eqDb, trimDb, type EqBand } from '../audio/toneMath'
 import type { DeckId } from '../audio/types'
 import { deckTourId } from '../help/tourIds'
 import { useGroupVisible } from '../learn/useGroupVisible'
-import { useAppStore } from '../state/store'
+import { useSettingsStore } from '../state/settingsStore'
+import { AUTO_MIX_BEATS, useAppStore } from '../state/store'
+import { onTick } from '../ui/ticker'
 import { ClipWarning } from './ClipWarning'
 import { Fader } from './Fader'
 import { Knob } from './Knob'
@@ -54,8 +58,85 @@ export function Mixer(): React.JSX.Element {
         />
         <span className="mixer__xfader-end mixer__xfader-end--b">B</span>
       </div>
-      <div className="mixer__xfader-label">Krysslider (crossfader)</div>
+      <div className="mixer__xfader-row">
+        <span className="mixer__xfader-label">Krysslider (crossfader)</span>
+        <CurveSwitch />
+      </div>
+      <AutoMix />
     </section>
+  )
+}
+
+/** Myk eller skarp kurve på krysslideren. Vises i Avansert modus. */
+function CurveSwitch(): React.JSX.Element | null {
+  const curve = useAppStore((s) => s.mixer.crossfaderCurve)
+  const advanced = useSettingsStore((s) => s.advancedMode)
+  if (!advanced) return null
+  const option = (value: 'smooth' | 'sharp', label: string): React.JSX.Element => (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={curve === value}
+      className={`segmented__option ${curve === value ? 'segmented__option--on' : ''}`}
+      onClick={() => void dispatch({ type: 'mixer/setCrossfaderCurve', curve: value })}
+    >
+      {label}
+    </button>
+  )
+  return (
+    <div className="segmented" role="radiogroup" aria-label="Kurve på krysslideren" data-tour-id="crossfader-curve">
+      {option('smooth', 'Myk')}
+      {option('sharp', 'Skarp')}
+    </div>
+  )
+}
+
+/** Auto-overgang: appen mikser over til den andre decken på et valgt antall slag. */
+function AutoMix(): React.JSX.Element {
+  const running = useAppStore((s) => s.mixer.autoMix)
+  const beats = useAppStore((s) => s.mixer.autoMixBeats)
+  const target = useAppStore((s) => (s.mixer.crossfader <= 0.5 ? 'B' : 'A'))
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!running) return
+    return onTick(() => {
+      buttonRef.current?.style.setProperty('--progress', String(autoMixProgress() ?? 0))
+    })
+  }, [running])
+
+  const shown = running ? running.target : target
+  return (
+    <div className="automix" data-tour-id="auto-mix">
+      <button
+        ref={buttonRef}
+        type="button"
+        className={`automix__go automix__go--${shown.toLowerCase()} ${running ? 'automix__go--running' : ''}`}
+        aria-pressed={running !== null}
+        onClick={() => void dispatch({ type: 'mixer/autoMix' })}
+      >
+        <span className="automix__fill" aria-hidden />
+        <span className="automix__text">
+          {running ? 'Avbryt overgang' : shown === 'B' ? 'Auto-overgang til B →' : '← Auto-overgang til A'}
+        </span>
+      </button>
+      <div className="segmented" role="radiogroup" aria-label="Lengde på overgangen">
+        {AUTO_MIX_BEATS.map((b) => (
+          <button
+            key={b}
+            type="button"
+            role="radio"
+            aria-checked={beats === b}
+            disabled={running !== null}
+            className={`segmented__option ${beats === b ? 'segmented__option--on' : ''}`}
+            onClick={() => void dispatch({ type: 'mixer/setAutoMixBeats', beats: b })}
+          >
+            {b}
+          </button>
+        ))}
+        <span className="segmented__unit">slag</span>
+      </div>
+    </div>
   )
 }
 

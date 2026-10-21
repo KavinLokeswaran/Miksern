@@ -30,7 +30,9 @@ export const DECK_CONTROLS = [
   'fx',
   'fx-echo',
   'fx-reverb',
-  'fx-flanger'
+  'fx-flanger',
+  'platter',
+  'nudge'
 ] as const
 export type DeckControl = (typeof DECK_CONTROLS)[number]
 
@@ -54,7 +56,9 @@ export const GLOBAL_CONTROLS = [
   'library-list',
   'library-load-a',
   'library-load-b',
-  'library-skipped'
+  'library-skipped',
+  'auto-mix',
+  'crossfader-curve'
 ] as const
 export type GlobalControl = (typeof GLOBAL_CONTROLS)[number]
 

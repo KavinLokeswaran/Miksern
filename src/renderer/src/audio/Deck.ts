@@ -21,6 +21,10 @@ export class Deck {
   private source: ActiveSource | null = null
   private readonly clock = new Playhead()
   private rate = 1
+  /** Midlertidig skyv (nudge) oppå tempoet: 1 = ingen, 1.04 = 4 % raskere. */
+  private bend = 1
+  /** Mens noen holder i platen (scratch), styrer hånda farten, ikke tempoet. */
+  private scratch: { wasPlaying: boolean; rate: number } | null = null
   private loop: LoopRegion | null = null
 
   /** Kalles når låten spiller helt til slutten av seg selv. */
@@ -34,8 +38,13 @@ export class Deck {
     return this.buffer !== null
   }
 
+  /** Spiller decken? Under scratch: om den spilte da hånda tok tak i platen. */
   get isPlaying(): boolean {
-    return this.source !== null
+    return this.scratch ? this.scratch.wasPlaying : this.source !== null
+  }
+
+  get isScratching(): boolean {
+    return this.scratch !== null
   }
 
   get duration(): number {
@@ -104,6 +113,10 @@ export class Deck {
   }
 
   play(): void {
+    if (this.scratch) {
+      this.scratch.wasPlaying = true
+      return
+    }
     if (!this.buffer || this.source) return
     let pos = this.position
     if (pos >= this.duration - 0.01) pos = 0
@@ -111,6 +124,10 @@ export class Deck {
   }
 
   pause(): void {
+    if (this.scratch) {
+      this.scratch.wasPlaying = false
+      return
+    }
     if (!this.source) return
     const pos = this.position
     this.stopSource()
@@ -135,7 +152,62 @@ export class Deck {
   /** Avspillingshastighet (1 = normal). Endrer også tonehøyden, som en platespiller. */
   setRate(rate: number): void {
     this.rate = rate
+    this.applyRate()
+  }
+
+  /** Skyver låten litt raskere eller saktere (1 = normalt), uten å endre tempo-slideren. */
+  setBend(factor: number): void {
+    if (factor === this.bend) return
+    this.bend = factor
+    this.applyRate()
+  }
+
+  /**
+   * Hånda tar tak i platen. Låten står stille til hånda beveger seg.
+   * Står decken stille, kan du likevel scratche – da høres lyden bare mens hånda beveger seg.
+   */
+  beginScratch(): void {
+    if (!this.buffer || this.scratch) return
+    this.scratch = { wasPlaying: this.source !== null, rate: 0 }
+    if (this.source) this.applyRate()
+    else this.startSource(this.position)
+  }
+
+  /** Farten hånda drar platen med (1 = normal fart, negativ = baklengs). */
+  setScratchRate(rate: number): void {
+    if (!this.scratch) return
+    const pos = this.position
+    // Stopp ved start og slutt, så lyden ikke tar slutt midt i en scratch.
+    if ((rate < 0 && pos <= 0.005) || (rate > 0 && pos >= this.duration - 0.005)) rate = 0
+    this.scratch.rate = rate
+    if (this.source) this.applyRate()
+    else this.startSource(pos)
+  }
+
+  /** Hånda slipper platen. Spilte decken, fortsetter den der hånda slapp. */
+  endScratch(): void {
+    const scratch = this.scratch
+    if (!scratch) return
+    this.scratch = null
+    if (scratch.wasPlaying) {
+      if (this.source) this.applyRate()
+      else this.startSource(this.position)
+      return
+    }
+    const pos = this.position
+    this.stopSource()
+    this.clock.stop(this.ctx.currentTime)
+    this.clock.set(pos, this.ctx.currentTime)
+  }
+
+  /** Farten lyden faktisk spilles med akkurat nå. */
+  private get audioRate(): number {
+    return this.scratch ? this.scratch.rate : this.rate * this.bend
+  }
+
+  private applyRate(): void {
     const now = this.ctx.currentTime
+    const rate = this.audioRate
     this.clock.setRate(rate, now)
     this.source?.node.playbackRate.setValueAtTime(rate, now)
   }
@@ -146,7 +218,8 @@ export class Deck {
     const now = this.ctx.currentTime
     const node = this.ctx.createBufferSource()
     node.buffer = buffer
-    node.playbackRate.value = this.rate
+    const rate = this.audioRate
+    node.playbackRate.value = rate
     if (this.loop) {
       node.loop = true
       node.loopStart = this.loop.start
@@ -168,7 +241,7 @@ export class Deck {
       this.onEnded?.()
     }
     node.start(now, pos)
-    this.clock.setRate(this.rate, now)
+    this.clock.setRate(rate, now)
     this.clock.start(pos, now)
     this.source = active
   }

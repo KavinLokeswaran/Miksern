@@ -9,6 +9,15 @@ første gang, og små leksjoner som låser opp nye kontroller etter hvert.
 ## Hva appen kan
 
 - To decks (A og B) med play, cue, tempo-slider (±8 %) og Synk.
+- En plate (jog wheel) på hver deck som snurrer mens låten spiller. Dra oppå platen for å
+  scratche (også baklengs), dra i kanten – eller bruk to fingre på styreflaten – for å skyve
+  låten i takt. Ringen rundt viser hvor langt låten har kommet, og blinker de siste 30 sekundene.
+- Skyv-knapper (‹‹ ››) som gjør låten litt saktere eller raskere mens du holder dem inne.
+- Auto-overgang: appen starter den andre låten i takt, flytter krysslideren mykt over 8, 16
+  eller 32 slag og bytter bassen på midten.
+- Myk eller skarp kurve på krysslideren (Avansert modus).
+- Fadere og knotter som glir: ta tak og dra uten at de hopper, klikk på sporet for å gli dit,
+  bruk styreflaten, og hold Shift for finjustering. Knottene og krysslideren hakker litt i midten.
 - Automatisk BPM og beatgrid, bølgeformer og fasemåler.
 - Mikser med trim, EQ (bass, mellomtone, diskant), filter, volumfadere, krysslider,
   nivåmålere, klippevarsel og limiter.
@@ -66,6 +75,7 @@ xattr -dr com.apple.quarantine /Applications/Mikseren.app
 | O       | Cue på deck B                                             |
 | Shift+W | Sett cue på deck A akkurat der låten er nå, uten å stoppe |
 | Shift+O | Sett cue på deck B akkurat der låten er nå, uten å stoppe |
+| M       | Start (eller avbryt) en auto-overgang til den andre decken |
 | ← →     | Flytt krysslideren                                        |
 | Esc     | Lukk grunnkurset eller leksjonen                          |
 

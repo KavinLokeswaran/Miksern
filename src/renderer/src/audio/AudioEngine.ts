@@ -1,5 +1,5 @@
 import { ChannelStrip } from './ChannelStrip'
-import { crossfaderGains, faderGain } from './curves'
+import { crossfaderGains, faderGain, type CrossfaderCurve } from './curves'
 import { Deck } from './Deck'
 import { MasterBus } from './MasterBus'
 import type { Level } from './meterMath'
@@ -64,8 +64,8 @@ export class AudioEngine {
     this.strips[id].setTempo(effectiveBpm)
   }
 
-  setCrossfader(position: number): void {
-    const { a, b } = crossfaderGains(position)
+  setCrossfader(position: number, curve: CrossfaderCurve): void {
+    const { a, b } = crossfaderGains(position, curve)
     this.strips.A.setCrossfade(a)
     this.strips.B.setCrossfade(b)
   }
