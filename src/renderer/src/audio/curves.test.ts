@@ -27,6 +27,19 @@ describe('krysslider (equal power)', () => {
   })
 })
 
+describe('krysslider (skarp kurve)', () => {
+  it('spiller begge fullt i midten', () => {
+    expect(crossfaderGains(0.5, 'sharp')).toEqual({ a: 1, b: 1 })
+    expect(crossfaderGains(0.1, 'sharp')).toEqual({ a: 1, b: 1 })
+  })
+
+  it('kutter helt ute i kantene', () => {
+    expect(crossfaderGains(0, 'sharp')).toEqual({ a: 1, b: 0 })
+    expect(crossfaderGains(1, 'sharp')).toEqual({ a: 0, b: 1 })
+    expect(crossfaderGains(0.01, 'sharp').b).toBeCloseTo(0.2, 6)
+  })
+})
+
 describe('volumfader', () => {
   it('går fra stille til fullt', () => {
     expect(faderGain(0)).toBe(0)

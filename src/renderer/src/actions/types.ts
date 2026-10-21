@@ -1,3 +1,4 @@
+import type { CrossfaderCurve } from '../audio/curves'
 import type { FxKind } from '../audio/fxMath'
 import type { EqBand } from '../audio/toneMath'
 import type { DeckId } from '../audio/types'
@@ -36,7 +37,23 @@ export type Action =
   /** Tempo-slideren: -0.08 til 0.08. */
   | { type: 'deck/setPitch'; deck: DeckId; value: number }
   | { type: 'deck/toggleSync'; deck: DeckId }
-  | { type: 'mixer/setCrossfader'; value: number }
+  /**
+   * Hånda tar tak i platen. 'scratch' = oppå platen (låten følger hånda),
+   * 'nudge' = på kanten (skyver tempoet litt mens du dreier).
+   */
+  | { type: 'deck/jogStart'; deck: DeckId; mode: 'scratch' | 'nudge' }
+  /** Platen dreies `turns` runder (positiv = med klokka = fremover). Også musehjul over platen. */
+  | { type: 'deck/jogMove'; deck: DeckId; turns: number }
+  | { type: 'deck/jogEnd'; deck: DeckId }
+  /** Skyv-knappene: -1 = saktere, 1 = raskere, 0 = sluppet. */
+  | { type: 'deck/nudge'; deck: DeckId; direction: -1 | 0 | 1 }
+  /** `auto` = flyttet av auto-overgangen, ikke av brukeren. */
+  | { type: 'mixer/setCrossfader'; value: number; auto?: boolean }
+  | { type: 'mixer/setCrossfaderCurve'; curve: CrossfaderCurve }
+  /** Starter en automatisk overgang til den andre decken (eller avbryter den som pågår). */
+  | { type: 'mixer/autoMix' }
+  /** Hvor lang auto-overgangen er, i slag. */
+  | { type: 'mixer/setAutoMixBeats'; beats: number }
   | { type: 'mixer/setMasterVolume'; value: number }
   /** Laster øvelses-beat 1 (120 BPM) eller 2 (124 BPM). */
   | { type: 'practice/load'; deck: DeckId; beat: 1 | 2; play?: boolean }

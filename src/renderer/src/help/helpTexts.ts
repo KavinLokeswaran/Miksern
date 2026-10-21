@@ -142,6 +142,16 @@ export const DECK_HELP: Record<DeckControl, HelpText> = {
     title: 'Filter',
     what: 'Én knott med to filtre. Til venstre blir lyden mørk og dempet (lavpass). Til høyre blir den tynn uten bass (høypass). I midten er filteret av.',
     when: 'Fint for å «tone ut» en låt i en overgang, eller for å bygge spenning. Dobbeltklikk for å slå av.'
+  },
+  platter: {
+    title: 'Plate (jog wheel)',
+    what: 'Platen snurrer når deck {deck} spiller. Dra oppå platen for å scratche – låten følger hånda, også baklengs. Dra i kanten for å skyve låten litt raskere eller saktere.',
+    when: 'Bruk kanten (eller to fingre på styreflaten) for å legge slagene oppå den andre låten. Ringen rundt viser hvor langt låten har kommet, og blinker når det er under 30 sekunder igjen.'
+  },
+  nudge: {
+    title: 'Skyv (nudge)',
+    what: 'Hold inne ›› for å gjøre deck {deck} litt raskere en kort stund, eller ‹‹ for litt saktere. Tempoet går tilbake når du slipper.',
+    when: 'Går slagene litt i utakt? Gi den nye låten et lite skyv til strekene ligger oppå hverandre.'
   }
 }
 
@@ -242,5 +252,15 @@ export const GLOBAL_HELP: Record<GlobalControl, HelpText> = {
     title: 'Hoppet over',
     what: 'Filer appen ikke kan spille, for eksempel kopibeskyttede Apple Music-filer eller skadede filer.',
     when: 'Klikk for å se hvilke filer det gjelder, og hvorfor.'
+  },
+  'auto-mix': {
+    title: 'Auto-overgang',
+    what: 'Appen mikser over til den andre decken for deg: starter låten (i takt, hvis det går), flytter krysslideren mykt og bytter bassen på midten.',
+    when: 'Velg hvor mange slag overgangen skal ta. Trykk igjen, eller ta tak i krysslideren, for å avbryte. Snarvei: M.'
+  },
+  'crossfader-curve': {
+    title: 'Kurve på krysslideren',
+    what: 'Myk: lyden glir jevnt fra én låt til den andre. Skarp: begge spiller fullt, og den ene kuttes helt ute i kanten.',
+    when: 'Myk passer til vanlige overganger. Skarp passer til scratch og raske kutt.'
   }
 }

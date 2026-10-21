@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { BeatGrid } from '@shared/analysis'
 import { HOT_CUE_COUNT } from '@shared/cues'
+import type { CrossfaderCurve } from '../audio/curves'
 import { FX_KINDS, type FxKind } from '../audio/fxMath'
 import type { LoopRegion } from '../audio/loopMath'
 import type { EqBand } from '../audio/toneMath'
@@ -78,7 +79,15 @@ export interface MixerState {
   crossfader: number
   /** 0–1. */
   masterVolume: number
+  crossfaderCurve: CrossfaderCurve
+  /** Lengden på auto-overgangen, i slag. */
+  autoMixBeats: number
+  /** Auto-overgangen som pågår: decken den går over til. */
+  autoMix: { target: DeckId } | null
 }
+
+/** Lengdene auto-overgangen tilbyr, i slag. */
+export const AUTO_MIX_BEATS = [8, 16, 32] as const
 
 export interface AppState {
   decks: Record<DeckId, DeckState>
@@ -117,7 +126,7 @@ export function createInitialState(): AppState {
   for (const id of DECK_IDS) decks[id] = { ...initialDeckState }
   return {
     decks,
-    mixer: { crossfader: 0.5, masterVolume: 0.8 },
+    mixer: { crossfader: 0.5, masterVolume: 0.8, crossfaderCurve: 'smooth', autoMixBeats: 16, autoMix: null },
     recording: { status: 'idle', startedAt: null, unsavedSeconds: 0, savedPath: null, error: null }
   }
 }

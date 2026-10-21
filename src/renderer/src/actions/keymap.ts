@@ -18,6 +18,7 @@ export const SHORTCUTS: Shortcut[] = [
   { code: 'KeyO', label: 'O', action: { type: 'deck/cue', deck: 'B' } },
   { code: 'KeyW', shift: true, label: 'Shift+W', action: { type: 'deck/setCueHere', deck: 'A' } },
   { code: 'KeyO', shift: true, label: 'Shift+O', action: { type: 'deck/setCueHere', deck: 'B' } },
+  { code: 'KeyM', label: 'M', action: { type: 'mixer/autoMix' } },
   {
     code: 'ArrowLeft',
     label: '←',
